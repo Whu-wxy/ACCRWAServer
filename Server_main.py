@@ -8,10 +8,15 @@ import sys
 
 from flask import Flask, request, Response, jsonify
 from flask_cors import CORS
+
+from gevent import monkey
 from gevent.pywsgi import WSGIServer
 
-from Predictor import Predictor
-T = TypeVar('T', Predictor)
+from predictor.Predictor import Predictor
+
+from utils import check_for_gpu
+
+#monkey.patch_all()   #设置多进程，但是模型应该一次只能处理一张图，
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -31,13 +36,13 @@ class ServerError(Exception):
         return error_dict
 
 
-def make_app(predictor):
+def make_app(predictor: Predictor) -> Flask:
 
     # 服务命名为app
     app = Flask(__name__)  # pylint: disable=invalid-name
 
     @app.errorhandler(ServerError)
-    def handle_invalid_usage(error):  # pylint: disable=unused-variable
+    def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unused-variable
         response = jsonify(error.to_dict())
         response.status_code = error.status_code
         return response
@@ -51,21 +56,25 @@ def make_app(predictor):
     #         return Response(response=html, status=200)
 
     @app.route('/predict', methods=['POST', 'OPTIONS'])
-    def predict(predictor):  # pylint: disable=unused-variable
+    def predict() -> Response:  # pylint: disable=unused-variable
         """make a prediction using the specified model and return the results"""
         if request.method == "OPTIONS":
             return Response(response="", status=200)
 
+        #print("request:", request.data)
         data = request.get_json()
 
         prediction = predictor.predict_json(data)
 
-        log_blob = {"outputs": prediction}
-        logger.info("prediction: %s", json.dumps(log_blob))
-
         return jsonify(prediction)
 
     return app
+
+
+def _get_predictor(args: argparse.Namespace) -> Predictor:
+    check_for_gpu(args.cuda)
+
+    return Predictor.from_args(args.predictor)
 
 
 
@@ -73,19 +82,20 @@ def main(args):
 
     parser = argparse.ArgumentParser(description='Serve up a simple model')
 
-    parser.add_argument('--cuda-device', type=int, default=-1, help='id of GPU to use (if any)')
-    parser.add_argument('--port', type=int, default=8000, help='port to serve the demo on')
+    parser.add_argument('--cuda', type=int, default=-1, help='id of GPU to use (if any)')
+    parser.add_argument('--port', type=int, default=8000, help='port of the server')
+    parser.add_argument('--predictor', type=str, required=True, help='name of predictor')
+
 
     args = parser.parse_args(args)
 
-    #predictor = _get_predictor(args)
+    predictor = _get_predictor(args)
 
-    predictor = Predictor()
     app = make_app(predictor=predictor)
     CORS(app)
 
     http_server = WSGIServer(('0.0.0.0', args.port), app)
-    print("Model loaded, serving demo on port "+args.port)
+    print(f"Serving demo on port {args.port}")
     http_server.serve_forever()
 
 
