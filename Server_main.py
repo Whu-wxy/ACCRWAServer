@@ -62,9 +62,10 @@ def make_app(predictor: Predictor) -> Flask:
             return Response(response="", status=200)
 
         #print("request:", request.data)
-        data = request.get_json()
+        #data = request.get_json()
+        upload_file = request.files['file']
 
-        prediction = predictor.predict_json(data)
+        prediction = predictor.predict_json(data=upload_file)
 
         return jsonify(prediction)
 

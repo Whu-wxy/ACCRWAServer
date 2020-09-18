@@ -65,3 +65,38 @@ class Registrable():
         if name not in Registrable._registry[cls]:
             raise ValueError("%s is not a registered name for %s" % (name, cls.__name__))
         return Registrable._registry[cls].get(name)
+
+
+
+import datetime
+import os
+
+
+# 检查文件扩展名
+def allowed_file(filename):
+    allowed_extension = ['jpg', 'png', 'JPG', 'bmp']
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extension
+
+def get_extention(image_name):
+    return image_name.rsplit('.', 1)[1].lower()
+
+
+def save_img(image_data, image_extention, root_save_path='../images/'):
+    allowed_extension = ['jpg', 'png', 'JPG', 'bmp']
+    if not image_extention in allowed_extension:
+        image_extention = 'jpg'
+
+    time_now = datetime.datetime.now()
+    img_save_path = root_save_path + time_now.strftime("%Y-%m-%d")
+    if not os.path.exists(img_save_path):
+        os.makedirs(img_save_path)
+
+    image_name = str(len(os.listdir(img_save_path)) + 1) + '.' + image_extention
+    cv2.imwrite(os.path.join(img_save_path, image_name), image_data)
+
+
+def image_decode():
+    img = base64.b64decode(str(request.form["file"]))
+    image_data = np.fromstring(img, np.uint8)
+    image_data = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+    return image_data
