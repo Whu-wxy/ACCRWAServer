@@ -1,6 +1,9 @@
 from torch import cuda
 from typing import Union, List, TypeVar, Type, Dict
 from collections import defaultdict
+import time
+import datetime
+import os
 
 def parse_cuda_device(cuda_device: Union[str, int, List[int]]) -> Union[int, List[int]]:
     """
@@ -23,6 +26,7 @@ def parse_cuda_device(cuda_device: Union[str, int, List[int]]) -> Union[int, Lis
     else:
         return int(cuda_device)  # type: ignore
 
+
 def check_for_gpu(device_id: Union[int, list]):
     device_id = parse_cuda_device(device_id)
     if isinstance(device_id, list):
@@ -38,6 +42,22 @@ def check_for_gpu(device_id: Union[int, list]):
             raise ConfigurationError(f"Experiment specified GPU device {device_id}"
                                      f" but there are only {num_devices_available} devices "
                                      f" available.")
+
+
+def get_img_save_dir(root_path='../../../'):
+    # 按日期创建文件夹存图片
+    date_now = time.strftime("%Y%m%d", time.localtime())
+    root_path = os.path.join(root_path, 'users_data')
+    save_path = os.path.join(root_path, date_now)
+    img_save_path = os.path.join(save_path, 'imgs')
+    result_save_path = os.path.join(save_path, 'results')
+    if not os.path.exists(img_save_path):
+        os.makedirs(img_save_path)
+    if not os.path.exists(result_save_path):
+        os.makedirs(result_save_path)
+    return img_save_path, result_save_path
+
+
 
 T = TypeVar('T')
 
@@ -68,8 +88,6 @@ class Registrable():
 
 
 
-import datetime
-import os
 
 
 # 检查文件扩展名
@@ -81,6 +99,7 @@ def get_extention(image_name):
     return image_name.rsplit('.', 1)[1].lower()
 
 
+#unused
 def save_img(image_data, image_extention, root_save_path='../images/'):
     allowed_extension = ['jpg', 'png', 'JPG', 'bmp']
     if not image_extention in allowed_extension:
@@ -94,7 +113,7 @@ def save_img(image_data, image_extention, root_save_path='../images/'):
     image_name = str(len(os.listdir(img_save_path)) + 1) + '.' + image_extention
     cv2.imwrite(os.path.join(img_save_path, image_name), image_data)
 
-
+#unused
 def image_decode():
     img = base64.b64decode(str(request.form["file"]))
     image_data = np.fromstring(img, np.uint8)

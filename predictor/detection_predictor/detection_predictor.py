@@ -9,6 +9,7 @@ import cv2
 from torchvision import transforms
 import numpy as np
 from predictor.detection_predictor.dist import decode as dist_decode
+from utils import get_img_save_dir
 
 def sigmoid(x):
     s = 1 / (1 + np.exp(-x))
@@ -93,19 +94,11 @@ class Detection_Predictor(Predictor):
 
 		file_name = upload_file.filename
 
-		#按日期创建文件夹存图片
-		date_now = time.strftime("%Y%m%d", time.localtime())
-		save_path = os.path.join('../../../users_image/', date_now)
-		img_save_path = os.path.join(save_path, 'imgs')
-		result_save_path = os.path.join(save_path, 'results')
-		if not os.path.exists(img_save_path):
-			os.mkdirs(img_save_path)
-		if not os.path.exists(result_save_path):
-			os.mkdirs(result_save_path)
+		img_save_path, result_save_path = get_img_save_dir('../../../')
 
 		file_path = ''
 		try:
-			file_path = os.path.join(img_save_path, +file_name)
+			file_path = os.path.join(img_save_path, file_name)
 			upload_file.save(file_path)
 			print('file saved to %s' % file_path)
 		except:
@@ -157,4 +150,8 @@ class Detection_Predictor(Predictor):
 #{"result":[{"position":[-1, -1, -1, -1], "text":"123"}]}
 
 if __name__ == '__main__':
-	demo()
+	#demo()
+
+	img_save_path, result_save_path = get_img_save_dir('../../../')
+	print(img_save_path)
+	print(result_save_path)
