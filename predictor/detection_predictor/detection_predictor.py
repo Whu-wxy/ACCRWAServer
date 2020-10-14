@@ -9,7 +9,11 @@ import cv2
 from torchvision import transforms
 import numpy as np
 from predictor.detection_predictor.dist import decode as dist_decode
+from predictor.detection_predictor.db_decode import DB_Decoder
+
 from utils import get_img_save_dir
+from werkzeug.utils import secure_filename
+import timeit
 
 def sigmoid(x):
     s = 1 / (1 + np.exp(-x))
@@ -34,12 +38,12 @@ def draw_bbox(img_path, result, color=(255, 0, 0),thickness=2):
 
 def demo():
 
-	long_size = 1300
+	long_size = 2000
 	img_path = './test.jpg'
 	print(onnxruntime.get_device())
 
 
-	session = onnxruntime.InferenceSession("./dmnet.onnx")
+	session = onnxruntime.InferenceSession("../../models/dmnet.onnx")
 
 	session.get_modelmeta()
 	first_input_name = session.get_inputs()[0].name
@@ -58,43 +62,52 @@ def demo():
 	tensor = transforms.ToTensor()(img)
 	tensor = tensor.unsqueeze_(0)
 
+	start = timeit.default_timer()
 	result = session.run([], {"input": tensor.cpu().numpy()})
+	end = timeit.default_timer()
+	print('model time: ', end - start)
 	result = result[0]
 
 	print(result.shape)
 
-	# result = np.squeeze(result)
-	# distance_map = result[0]
-	# distance_map = sigmoid(distance_map)
-	# cv2.namedWindow("dist_map", cv2.WINDOW_NORMAL)
-	# cv2.imshow('dist_map', distance_map)
-	# cv2.waitKey()
+	start = timeit.default_timer()
+	#boxes_list = dist_decode(result[0], scale, dmax=0.6, center_th=0.91, full_th=0.91)
 
-	preds_temp, boxes_list = dist_decode(result[0], scale)
+	db = DB_Decoder(unclip_ratio=0.5)
+	boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+
+	end = timeit.default_timer()
+	print('decode time: ', end - start)
+
+	boxes_list = np.array(boxes_list)
 
 	final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
 	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
 	cv2.imshow('final_img', final_img)
 	cv2.waitKey()
 
+	#cv2.imwrite('./test_db_decode0.5.jpg', final_img)
 
 
-@Predictor.register('detection')
+
+#@Predictor.register('detection')
 class Detection_Predictor(Predictor):
 
 	def __init__(self):
 		self.session = None
+		self.long_size = 2000
 
 		self._model_init()
 
 	def _model_init(self):
-		self.session = onnxruntime.InferenceSession("./dmnet.onnx")
+		self.session = onnxruntime.InferenceSession("./models/dmnet.onnx")
 
-	def _json_preprocessing(self, upload_file):
+	def _json_preprocessing(self, request):
 
-		file_name = upload_file.filename
+		upload_file = request.files['file']
+		file_name = secure_filename(upload_file.filename)
 
-		img_save_path, result_save_path = get_img_save_dir('../../../')
+		img_save_path, result_save_path = get_img_save_dir('../')
 
 		file_path = ''
 		try:
@@ -112,30 +125,41 @@ class Detection_Predictor(Predictor):
 			if os.path.exists(instance[0]):
 				img = cv2.imread(instance[0])
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
 				h, w = img.shape[:2]
 
 				scale = 1
-				if long_size != None:
-					scale = long_size / max(h, w)
+				if self.long_size != None:
+					scale = self.long_size / max(h, w)
 					img = cv2.resize(img, None, fx=scale, fy=scale)
 
 				# 将图片由(w,h)变为(1,img_channel,h,w)
 				tensor = transforms.ToTensor()(img)
 				tensor = tensor.unsqueeze_(0)
 
-				result = session.run([], {"input": tensor.cpu().numpy()})
-				result = result[0]
-				preds_temp, boxes_list = dist_decode(result[0], scale)
+				try:
+					start = timeit.default_timer()
+					result = self.session.run([], {"input": tensor.cpu().numpy()})
+					end = timeit.default_timer()
+					print('model time: ', end-start)
 
-				position = []
-				for box in boxes_list:
-					box = box.astype(int)
-					if len(box) == 4:
-						position.append([box[0], box[1], box[2], box[3]])
+					result = result[0]
+					start = timeit.default_timer()
+					preds_temp, boxes_list = dist_decode(result[0], scale)
+					end = timeit.default_timer()
+					print('decode time: ', end - start)
 
-				return position  # {"result": [[...], [...], [...]] }
+					positions = []
+					for box in boxes_list:
+						if len(box) == 4:
+							positions.append(box)
+
+					return positions  # {"result": [[...], [...], [...]] }
+				except:
+					return []
 			else:
 				print('image is not exist!')
+				return []
 		except:
 			return []
 
@@ -150,8 +174,8 @@ class Detection_Predictor(Predictor):
 #{"result":[{"position":[-1, -1, -1, -1], "text":"123"}]}
 
 if __name__ == '__main__':
-	#demo()
+	demo()
 
-	img_save_path, result_save_path = get_img_save_dir('../../../')
-	print(img_save_path)
-	print(result_save_path)
+	# img_save_path, result_save_path = get_img_save_dir('../../../')
+	# print(img_save_path)
+	# print(result_save_path)

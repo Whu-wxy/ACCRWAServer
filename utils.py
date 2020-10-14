@@ -89,11 +89,12 @@ class Registrable():
 
 
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'tif', 'JPG'}
+
 
 # 检查文件扩展名
 def allowed_file(filename):
-    allowed_extension = ['jpg', 'png', 'JPG', 'bmp']
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extension
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_extention(image_name):
     return image_name.rsplit('.', 1)[1].lower()

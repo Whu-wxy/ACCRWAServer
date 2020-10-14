@@ -14,7 +14,7 @@ from gevent.pywsgi import WSGIServer
 
 from predictor.Predictor import Predictor
 
-from utils import check_for_gpu
+from utils import check_for_gpu, allowed_file
 
 #monkey.patch_all()   #设置多进程，但是模型应该一次只能处理一张图，
 
@@ -32,7 +32,7 @@ class ServerError(Exception):
 
     def to_dict(self):
         error_dict = dict(self.payload or ())
-        error_dict['message'] = self.message
+        error_dict['result'] = self.message
         return error_dict
 
 
@@ -45,6 +45,14 @@ def make_app(predictor: Predictor) -> Flask:
     def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unused-variable
         response = jsonify(error.to_dict())
         response.status_code = error.status_code
+
+        # response = error.get_response()
+        # response.data = json.dumps({
+        #     "code": error.code,
+        #     "name": error.name,
+        #     "description": error.description,
+        # })
+        # response.content_type = "application/json"
         return response
 
     # @app.route('/')
@@ -55,19 +63,29 @@ def make_app(predictor: Predictor) -> Flask:
     #         html = _html(title, field_names)
     #         return Response(response=html, status=200)
 
-    @app.route('/predict', methods=['POST', 'OPTIONS'])
+    @app.route('/predict', methods=['POST'])
     def predict() -> Response:  # pylint: disable=unused-variable
         """make a prediction using the specified model and return the results"""
-        if request.method == "OPTIONS":
-            return Response(response="", status=200)
 
-        #print("request:", request.data)
-        #data = request.get_json()
+
+        #raise ServerError("static_dir not specified", 404)
+
+        #print("request:", request.form)
+        # print("headers:", request.headers)
+        # data = request.get_json()
+        # print(data)
+
+        #print(request.form['lon'])
+
         upload_file = request.files['file']
 
-        prediction = predictor.predict_json(data=upload_file)
+        #print('111: ', upload_file.filename)
 
-        return jsonify(prediction)
+        if allowed_file(upload_file.filename):
+            prediction = predictor.predict_json(data=request)
+            return jsonify(prediction)
+        else:
+            raise ServerError("img invalid", 404)
 
     return app
 
