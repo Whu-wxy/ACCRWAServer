@@ -1,7 +1,8 @@
 from predictor.Predictor import Predictor
 import time
-from flask import request
 import os
+from werkzeug.utils import secure_filename
+from flask import request
 
 @Predictor.register('test')
 class TestPredictor(Predictor):
@@ -12,11 +13,14 @@ class TestPredictor(Predictor):
 	def _model_init(self):
 		pass
 
-	def _json_preprocessing(self, upload_file):
+	def _json_preprocessing(self, request):
 		# print("receive data: ", data)
 		# time.sleep(3)
 
-		old_file_name = upload_file.filename
+		upload_file = request.files['file']
+
+		old_file_name = secure_filename(upload_file.filename)
+		print(old_file_name)
 		if upload_file:
 			file_path = os.path.join('./', "123_"+old_file_name)
 			upload_file.save(file_path)
@@ -29,5 +33,5 @@ class TestPredictor(Predictor):
 		return data
 
 	def _predict_instance(self, instance):
-		return {"result":[{"position":[0, 0, 10, 10], "text":"识别结果1"}]}
+		return {"result":[{"position":[0, 0, 10, 0, 10, 10, 0, 10], "text":"识别结果1"}]}
 
