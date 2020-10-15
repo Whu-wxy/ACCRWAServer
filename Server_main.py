@@ -45,14 +45,6 @@ def make_app(predictor: Predictor) -> Flask:
     def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unused-variable
         response = jsonify(error.to_dict())
         response.status_code = error.status_code
-
-        # response = error.get_response()
-        # response.data = json.dumps({
-        #     "code": error.code,
-        #     "name": error.name,
-        #     "description": error.description,
-        # })
-        # response.content_type = "application/json"
         return response
 
     # @app.route('/')
@@ -67,25 +59,22 @@ def make_app(predictor: Predictor) -> Flask:
     def predict() -> Response:  # pylint: disable=unused-variable
         """make a prediction using the specified model and return the results"""
 
-
-        #raise ServerError("static_dir not specified", 404)
-
         #print("request:", request.form)
         # print("headers:", request.headers)
-        # data = request.get_json()
-        # print(data)
+        data = request.get_json()
+        print(data)
+        prediction = predictor.predict_json(data)
+        return jsonify(prediction)
 
-        #print(request.form['lon'])
 
-        upload_file = request.files['file']
+        #upload_file = request.files['file']
 
-        #print('111: ', upload_file.filename)
 
-        if allowed_file(upload_file.filename):
-            prediction = predictor.predict_json(data=request)
-            return jsonify(prediction)
-        else:
-            raise ServerError("img invalid", 404)
+        # if allowed_file(upload_file.filename):
+        #     prediction = predictor.predict_json(data=request)
+        #     return jsonify(prediction)
+        # else:
+        #     raise ServerError("img invalid", 404)
 
     return app
 
