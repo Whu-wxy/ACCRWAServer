@@ -11,7 +11,7 @@ import numpy as np
 from predictor.detection_predictor.dist import decode as dist_decode
 from predictor.detection_predictor.db_decode import DB_Decoder
 
-from utils import get_img_save_dir
+from utils import get_img_save_dir, base64_to_cv2, allowed_file, save_img, save_boxes, cvImg_to_base64
 from werkzeug.utils import secure_filename
 import timeit
 
@@ -90,7 +90,7 @@ def demo():
 
 
 
-#@Predictor.register('detection')
+@Predictor.register('detection')
 class Detection_Predictor(Predictor):
 
 	def __init__(self):
@@ -102,22 +102,23 @@ class Detection_Predictor(Predictor):
 	def _model_init(self):
 		self.session = onnxruntime.InferenceSession("./models/dmnet.onnx")
 
-	def _json_preprocessing(self, request):
-
-		upload_file = request.files['file']
-		file_name = secure_filename(upload_file.filename)
+	def _json_preprocessing(self, data):
 
 		img_save_path, result_save_path = get_img_save_dir('../')
 
 		file_path = ''
+		label_path = ''
 		try:
-			file_path = os.path.join(img_save_path, file_name)
-			upload_file.save(file_path)
-			print('file saved to %s' % file_path)
+			file_name = secure_filename(data['imgname'])
+			image = base64_to_cv2(data['image'])
+			if allowed_file(file_name):
+				file_path, file_name = save_img(image, file_name, img_save_path)
+				label_path = os.path.join(result_save_path, file_name.split('.')[0] + '.txt')
+				print('file saved to %s' % file_path)
 		except:
 			print('upload_file is empty!')
 		finally:
-			return [file_path, result_save_path]
+			return [file_path, label_path]
 
 
 	def predict(self, instance):
@@ -145,16 +146,21 @@ class Detection_Predictor(Predictor):
 
 					result = result[0]
 					start = timeit.default_timer()
-					preds_temp, boxes_list = dist_decode(result[0], scale)
+					boxes_list = dist_decode(result[0], scale)
 					end = timeit.default_timer()
 					print('decode time: ', end - start)
 
-					positions = []
-					for box in boxes_list:
-						if len(box) == 4:
-							positions.append(box)
+					save_boxes(instance[1], boxes_list)
 
-					return positions  # {"result": [[...], [...], [...]] }
+					# boxes_list = np.array(boxes_list)
+					# final_img = draw_bbox(instance[0], boxes_list, color=(0, 0, 255))
+					# # cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
+					# # cv2.imshow('final_img', final_img)
+					# # cv2.waitKey()
+					# cvImg_to_base64(instance[0], final_img)
+
+
+					return boxes_list  # {"result": [[...], [...], [...]] }
 				except:
 					return []
 			else:

@@ -59,22 +59,10 @@ def make_app(predictor: Predictor) -> Flask:
     def predict() -> Response:  # pylint: disable=unused-variable
         """make a prediction using the specified model and return the results"""
 
-        #print("request:", request.form)
-        # print("headers:", request.headers)
         data = request.get_json()
-        print(data)
+
         prediction = predictor.predict_json(data)
         return jsonify(prediction)
-
-
-        #upload_file = request.files['file']
-
-
-        # if allowed_file(upload_file.filename):
-        #     prediction = predictor.predict_json(data=request)
-        #     return jsonify(prediction)
-        # else:
-        #     raise ServerError("img invalid", 404)
 
     return app
 

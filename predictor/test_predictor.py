@@ -20,8 +20,6 @@ class TestPredictor(Predictor):
 
 		img_save_path, result_save_path = get_img_save_dir('../')
 
-		print('user: ', data['username'])
-
 		try:
 			file_name = secure_filename(data['imgname'])
 			image = base64_to_cv2(data['image'])
