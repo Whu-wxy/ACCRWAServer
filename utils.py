@@ -4,6 +4,9 @@ from collections import defaultdict
 import time
 import datetime
 import os
+import cv2
+import base64
+import numpy as np
 
 def parse_cuda_device(cuda_device: Union[str, int, List[int]]) -> Union[int, List[int]]:
     """
@@ -94,29 +97,29 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'tif', 'JPG'}
 
 # 检查文件扩展名
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and get_extention(filename) in ALLOWED_EXTENSIONS
 
 def get_extention(image_name):
     return image_name.rsplit('.', 1)[1].lower()
 
 
 #unused
-def save_img(image_data, image_extention, root_save_path='../images/'):
-    allowed_extension = ['jpg', 'png', 'JPG', 'bmp']
-    if not image_extention in allowed_extension:
-        image_extention = 'jpg'
-
+def save_img(image_data, image_name, img_save_path):
     time_now = datetime.datetime.now()
-    img_save_path = root_save_path + time_now.strftime("%Y-%m-%d")
     if not os.path.exists(img_save_path):
-        os.makedirs(img_save_path)
+        raise ValueError("img_save_path not exist!")
 
-    image_name = str(len(os.listdir(img_save_path)) + 1) + '.' + image_extention
+    image_name = str(len(os.listdir(img_save_path)) + 1) + '.' + get_extention(image_name)
     cv2.imwrite(os.path.join(img_save_path, image_name), image_data)
 
-#unused
-def image_decode():
-    img = base64.b64decode(str(request.form["file"]))
-    image_data = np.fromstring(img, np.uint8)
-    image_data = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-    return image_data
+
+def cv2_to_base64(img_path):
+    extention = '.' + get_extention(img_path)
+    data = cv2.imencode(extention, cv2.imread(img_path))[1]
+    return base64.b64encode(data.tostring()).decode('utf8')
+
+def base64_to_cv2(b64str):
+    data = base64.b64decode(b64str.encode('utf8'))
+    data = np.fromstring(data, np.uint8)
+    image = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    return image
