@@ -103,7 +103,7 @@ def get_extention(image_name):
     return image_name.rsplit('.', 1)[1].lower()
 
 
-#unused
+
 def save_img(image_data, image_name, img_save_path):
     time_now = datetime.datetime.now()
     if not os.path.exists(img_save_path):
@@ -112,14 +112,37 @@ def save_img(image_data, image_name, img_save_path):
     image_name = str(len(os.listdir(img_save_path)) + 1) + '.' + get_extention(image_name)
     cv2.imwrite(os.path.join(img_save_path, image_name), image_data)
 
+    return os.path.join(img_save_path, image_name), image_name
+
+
+def save_boxes(save_path, boxes):
+    lines = []
+    for bbox in boxes:
+        line = ''
+        for box in bbox:
+            line += "%d, %d, " % (int(box[0]), int(box[1]))
+
+        line = line.rsplit(',', 1)[0]
+        line += '\n'
+        lines.append(line)
+
+    with open(save_path, 'w') as f:
+        for line in lines:
+            f.write(line)
+
 
 def cv2_to_base64(img_path):
     extention = '.' + get_extention(img_path)
     data = cv2.imencode(extention, cv2.imread(img_path))[1]
-    return base64.b64encode(data.tostring()).decode('utf8')
+    return base64.b64encode(data.tostring()).decode('utf-8')
+
+def cvImg_to_base64(img_path, img):
+    extention = '.' + get_extention(img_path)
+    data = cv2.imencode(extention, img)[1]
+    return base64.b64encode(data.tostring()).decode('utf-8')
 
 def base64_to_cv2(b64str):
-    data = base64.b64decode(b64str.encode('utf8'))
-    data = np.fromstring(data, np.uint8)
+    data = base64.b64decode(b64str.encode('utf-8'))
+    data = np.frombuffer(data, np.uint8)
     image = cv2.imdecode(data, cv2.IMREAD_COLOR)
     return image
