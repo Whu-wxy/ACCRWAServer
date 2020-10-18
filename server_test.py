@@ -3,6 +3,7 @@ import json
 import cv2
 import base64
 import numpy as np
+import time
 
 def cv2_to_base64(image):
 	data = cv2.imencode('.jpg', image)[1].tostring()
@@ -25,17 +26,33 @@ def post():
 	}
 
 	img_path = 'test.jpg'
+
 	# 发送HTTP请求
-	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
-	img = base64_to_cv2(post_data['image'])
+	# post_data['image'] = cv2_to_base64(cv2.imread(img_path))
+	# img = base64_to_cv2(post_data['image'])
+	# headers = {"Content-type": "application/json"}
+	# req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
 
 	headers = {"Content-type": "application/json"}
+	req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
+
 
 	# filename = "1.jpg"
 	# files = {'file': (filename, open("../1.jpg", 'rb'), 'image/jpg')}
 	#req = requests.post(URL, data=post_data, files=files)
 
-	req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
+
+	data = req.content.decode('utf-8')
+	data = json.loads(data)
+	print(data)
+
+	return data
+
+
+def status(url):
+	URL = 'http://127.0.0.1:8009/' +url
+
+	req = requests.get(url=URL)
 
 	data = req.content.decode('utf-8')
 	data = json.loads(data)
@@ -43,5 +60,15 @@ def post():
 
 
 if __name__ == '__main__':
-    post()
+	data1 = post()
+	data2 = post()
+	data3 = post()
+	for i in range(20):
+		time.sleep(1)
+		status(data1['Location'])
+
+	status(data1['Location'].replace('status', 'revoke'))
+	status(data2['Location'].replace('status', 'revoke'))
+	status(data3['Location'].replace('status', 'revoke'))
+
 

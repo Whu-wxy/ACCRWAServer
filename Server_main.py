@@ -47,14 +47,6 @@ def make_app(predictor: Predictor) -> Flask:
         response.status_code = error.status_code
         return response
 
-    # @app.route('/')
-    # def index() -> Response: # pylint: disable=unused-variable
-    #     if static_dir is not None:
-    #         return send_file(os.path.join(static_dir, 'index.html'))
-    #     else:
-    #         html = _html(title, field_names)
-    #         return Response(response=html, status=200)
-
     @app.route('/predict', methods=['POST'])
     def predict() -> Response:  # pylint: disable=unused-variable
         """make a prediction using the specified model and return the results"""
