@@ -63,12 +63,17 @@ if __name__ == '__main__':
 	data1 = post()
 	data2 = post()
 	data3 = post()
+	data4 = post()
 	for i in range(20):
 		time.sleep(1)
 		status(data1['Location'])
+		status(data2['Location'])
+		status(data3['Location'])
+		status(data4['Location'])
+		#status(data4['Location'].replace('status', 'revoke'))
 
-	status(data1['Location'].replace('status', 'revoke'))
-	status(data2['Location'].replace('status', 'revoke'))
-	status(data3['Location'].replace('status', 'revoke'))
+	# status(data1['Location'].replace('status', 'revoke'))
+	# status(data2['Location'].replace('status', 'revoke'))
+	# status(data3['Location'].replace('status', 'revoke'))
 
 

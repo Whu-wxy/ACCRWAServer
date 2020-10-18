@@ -16,7 +16,7 @@ class TestPredictor(Predictor):
 
 	def _json_preprocessing(self, data):
 		print("receive data: ", data)
-		time.sleep(10)
+		time.sleep(5)
 		return [1, 1, 0, 0]
 
 		# img_save_path, result_save_path = get_img_save_dir('../')

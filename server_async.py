@@ -5,13 +5,11 @@ import json
 import logging
 import os
 import sys
-
 from flask import Flask, request, Response, jsonify, url_for
 from flask_cors import CORS
 
 #from gevent import monkey   #多线程
 from gevent.pywsgi import WSGIServer
-
 from predictor.Predictor import Predictor
 from utils import check_for_gpu, allowed_file
 from celery import Celery
@@ -57,13 +55,14 @@ control = Control(celery_app)
 
 predictor = Predictor.by_name(predictor_name)()
 
+task_num = 0
 
 @celery_app.task(bind=True)
 def celery_predict(self, json_data):
     global predictor
     self.update_state(state='PROGRESS')
     prediction = predictor.predict_json(json_data)
-    return {'current': 50, 'total': 100}
+    return prediction
 
 
 @app.errorhandler(ServerError)
@@ -76,20 +75,27 @@ def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unu
 def predict() -> Response:  # pylint: disable=unused-variable
     """make a prediction using the specified model and return the results"""
     json_data = request.get_json()
+    global task_num
+    #task_num += 1
+    task_num = 0
     task = celery_predict.delay(json_data)
     print('task id: ', task.id)
-
-    return jsonify({'status':task.state, 'Location': url_for('taskstatus', task_id=task.id)})
+    return jsonify({'status':task.state, 'Location': url_for('taskstatus', task_id=task.id), 'previous':task_num})
 
 @app.route('/status/<task_id>', methods=['GET'])
 def taskstatus(task_id):
+    global task_num
     task = celery_predict.AsyncResult(task_id)
 
     if task.state == 'SUCCESS':
-        response = {'state': task.state, 'current': task.info.get('current', 0)}
-        #control.revoke(task.id, terminate=True)
+        response = {'state': task.state}
+        task_num -= 1
+        if 'result' in task.info:
+            response['result'] = task.info.get('result', [])
+        else:
+            response['result'] = []
     elif task.state == 'PENDING':  # 在等待
-        response = {'state': task.state}   #, 'current': task.info.get('current', 0)
+        response = {'state': task.state, 'previous': -1}
     else:
         response = {'state': task.state}
     return jsonify(response)
