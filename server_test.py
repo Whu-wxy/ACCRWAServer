@@ -25,11 +25,11 @@ def post():
 		'imgname':'test.jpg'
 	}
 
-	img_path = 'test.jpg'
+	img_path = './test.jpg'
 
 	# 发送HTTP请求
-	# post_data['image'] = cv2_to_base64(cv2.imread(img_path))
-	# img = base64_to_cv2(post_data['image'])
+	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
+	#img = base64_to_cv2(post_data['image'])
 	# headers = {"Content-type": "application/json"}
 	# req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
 
@@ -60,11 +60,14 @@ def status(url):
 
 
 if __name__ == '__main__':
+	for i in range(10):
+		data = post()
 	data1 = post()
 	data2 = post()
 	data3 = post()
 	data4 = post()
-	for i in range(20):
+
+	for i in range(30):
 		time.sleep(1)
 		status(data1['Location'])
 		status(data2['Location'])

@@ -7,8 +7,8 @@ import os
 import sys
 from flask import Flask, request, Response, jsonify, url_for
 from flask_cors import CORS
-
-#from gevent import monkey   #多线程
+import time
+from gevent import monkey   #多线程
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
 from utils import check_for_gpu, allowed_file
@@ -16,7 +16,7 @@ from celery import Celery
 from celery.app.task import Task
 from celery.app.control import Control
 
-#monkey.patch_all()   #设置多进程，但是模型应该一次只能处理一张图，
+monkey.patch_all()
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -51,11 +51,8 @@ celery_app = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery_app.conf.update(app.config)
 
 control = Control(celery_app)
-#queue = control.g
 
 predictor = Predictor.by_name(predictor_name)()
-
-task_num = 0
 
 @celery_app.task(bind=True)
 def celery_predict(self, json_data):
@@ -75,27 +72,22 @@ def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unu
 def predict() -> Response:  # pylint: disable=unused-variable
     """make a prediction using the specified model and return the results"""
     json_data = request.get_json()
-    global task_num
-    #task_num += 1
-    task_num = 0
     task = celery_predict.delay(json_data)
     print('task id: ', task.id)
-    return jsonify({'status':task.state, 'Location': url_for('taskstatus', task_id=task.id), 'previous':task_num})
+    return jsonify({'state':task.state, 'Location': url_for('taskstate', task_id=task.id)})
 
 @app.route('/status/<task_id>', methods=['GET'])
-def taskstatus(task_id):
-    global task_num
+def taskstate(task_id):
     task = celery_predict.AsyncResult(task_id)
 
     if task.state == 'SUCCESS':
         response = {'state': task.state}
-        task_num -= 1
         if 'result' in task.info:
             response['result'] = task.info.get('result', [])
         else:
             response['result'] = []
     elif task.state == 'PENDING':  # 在等待
-        response = {'state': task.state, 'previous': -1}
+        response = {'state': task.state}
     else:
         response = {'state': task.state}
     return jsonify(response)
