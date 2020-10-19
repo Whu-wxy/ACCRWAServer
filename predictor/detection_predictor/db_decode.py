@@ -151,6 +151,7 @@ class DB_Decoder():
 			box, sside = self.get_mini_boxes(box)
 			if sside < self.min_size + 2:
 				continue
+
 			box = np.array(box)
 
 			boxes[index, :, :] = box.astype(np.int16)

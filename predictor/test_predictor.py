@@ -15,7 +15,7 @@ class TestPredictor(Predictor):
 		pass
 
 	def _json_preprocessing(self, data):
-		print("receive data: ", data)
+		#print("receive data: ", data)
 		time.sleep(5)
 		return [1, 1, 0, 0]
 

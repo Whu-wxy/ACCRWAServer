@@ -11,35 +11,14 @@ import numpy as np
 from predictor.detection_predictor.dist import decode as dist_decode
 from predictor.detection_predictor.db_decode import DB_Decoder
 
-from utils import get_img_save_dir, base64_to_cv2, allowed_file, save_img, save_boxes, cvImg_to_base64
 from werkzeug.utils import secure_filename
 import timeit
-
-def sigmoid(x):
-    s = 1 / (1 + np.exp(-x))
-    return s
-
-def draw_bbox(img_path, result, color=(255, 0, 0),thickness=2):
-    if isinstance(img_path, str):
-        img_path = cv2.imread(img_path)
-        # img_path = cv2.cvtColor(img_path, cv2.COLOR_BGR2RGB)
-    img_path = img_path.copy()
-    for point in result:
-        point = point.astype(int)
-        if len(point) == 4:
-            cv2.line(img_path, tuple(point[0]), tuple(point[1]), color, thickness)
-            cv2.line(img_path, tuple(point[1]), tuple(point[2]), color, thickness)
-            cv2.line(img_path, tuple(point[2]), tuple(point[3]), color, thickness)
-            cv2.line(img_path, tuple(point[3]), tuple(point[0]), color, thickness)
-        elif len(point) == 2:
-            cv2.rectangle(img_path, tuple(point[0]), tuple(point[1]), color, thickness)
-    return img_path
-
+from utils import *
 
 def demo():
 
 	long_size = 2000
-	img_path = './test.jpg'
+	img_path = './1.jpg'
 	print(onnxruntime.get_device())
 
 
@@ -79,12 +58,11 @@ def demo():
 	end = timeit.default_timer()
 	print('decode time: ', end - start)
 
-	boxes_list = np.array(boxes_list)
-
-	final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
-	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
-	cv2.imshow('final_img', final_img)
-	cv2.waitKey()
+	# boxes_list = np.array(boxes_list)
+	# final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
+	# cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
+	# cv2.imshow('final_img', final_img)
+	# cv2.waitKey()
 
 	#cv2.imwrite('./test_db_decode0.5.jpg', final_img)
 
@@ -112,8 +90,8 @@ class Detection_Predictor(Predictor):
 			file_name = secure_filename(data['imgname'])
 			image = base64_to_cv2(data['image'])
 			if allowed_file(file_name):
-				file_path, file_name = save_img(image, file_name, img_save_path)
-				label_path = os.path.join(result_save_path, file_name.split('.')[0] + '.txt')
+				file_path, new_file_name = save_img(image, file_name, img_save_path)
+				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
 				print('file saved to %s' % file_path)
 		except:
 			print('upload_file is empty!')
@@ -150,16 +128,6 @@ class Detection_Predictor(Predictor):
 					end = timeit.default_timer()
 					print('decode time: ', end - start)
 
-					save_boxes(instance[1], boxes_list)
-
-					# boxes_list = np.array(boxes_list)
-					# final_img = draw_bbox(instance[0], boxes_list, color=(0, 0, 255))
-					# # cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
-					# # cv2.imshow('final_img', final_img)
-					# # cv2.waitKey()
-					# cvImg_to_base64(instance[0], final_img)
-
-
 					return boxes_list  # {"result": [[...], [...], [...]] }
 				except:
 					return []
@@ -169,10 +137,16 @@ class Detection_Predictor(Predictor):
 		except:
 			return []
 
+	def get_draw_img(self, img_path, boxes_list):
+		boxes_list = np.array(boxes_list)
+		final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
+		return cvImg_to_base64(img_path, final_img)
+
 	def _predict_instance(self, instance):
 		try:
-			position = self.predict(instance)
-			return {"result": position}  # {"result": [[...], [...], [...]] }
+			boxes_list = self.predict(instance)
+			save_boxes(instance[1], boxes_list)
+			return {"result": boxes_list}  # {"result": [[...], [...], [...]] }
 
 		except:
 			return {"result":[]}
