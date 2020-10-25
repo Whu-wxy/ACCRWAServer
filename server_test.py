@@ -19,10 +19,12 @@ def post():
 	URL = 'http://127.0.0.1:8009/predict'
 
 	post_data = {
-		"username": "12345",
-		"lon": 130,
-		"lat": 31,
-		'imgname':'test.jpg'
+		"username": "12345667890",
+		"lon": 131,
+		"lat": 32,
+		'imgname':'test.jpg',
+		# 'img_path':'../../sdfs',
+		# 'label_path':'../../sdfsdf'
 	}
 
 	img_path = './test.jpg'
@@ -50,7 +52,7 @@ def post():
 
 
 def status(url):
-	URL = 'http://127.0.0.1:8009/' +url
+	URL = 'http://127.0.0.1:8009' +url
 
 	req = requests.get(url=URL)
 
@@ -69,14 +71,14 @@ if __name__ == '__main__':
 
 	for i in range(30):
 		time.sleep(1)
-		status(data1['Location'])
-		status(data2['Location'])
-		status(data3['Location'])
-		status(data4['Location'])
-		#status(data4['Location'].replace('status', 'revoke'))
-
-	# status(data1['Location'].replace('status', 'revoke'))
-	# status(data2['Location'].replace('status', 'revoke'))
-	# status(data3['Location'].replace('status', 'revoke'))
+		status(data1['location'])
+		status(data2['location'])
+		status(data3['location'])
+		status(data4['location'])
+	# 	status(data4['location'].replace('status', 'revoke'))
+	#
+	# status(data1['location'].replace('status', 'revoke'))
+	# status(data2['location'].replace('status', 'revoke'))
+	# status(data3['location'].replace('status', 'revoke'))
 
 

@@ -14,6 +14,7 @@ from predictor.detection_predictor.db_decode import DB_Decoder
 from werkzeug.utils import secure_filename
 import timeit
 from utils import *
+from config import *
 
 def demo():
 
@@ -22,7 +23,7 @@ def demo():
 	print(onnxruntime.get_device())
 
 
-	session = onnxruntime.InferenceSession("../../models/dmnet.onnx")
+	session = onnxruntime.InferenceSession(MODEL_PATH)
 
 	session.get_modelmeta()
 	first_input_name = session.get_inputs()[0].name
@@ -73,16 +74,16 @@ class Detection_Predictor(Predictor):
 
 	def __init__(self):
 		self.session = None
-		self.long_size = 2000
+		self.long_size = 1600
 
 		self._model_init()
 
 	def _model_init(self):
-		self.session = onnxruntime.InferenceSession("./models/dmnet.onnx")
+		self.session = onnxruntime.InferenceSession(DETECTION_MODEL_PATH)
 
 	def _json_preprocessing(self, data):
 
-		img_save_path, result_save_path = get_img_save_dir('../')
+		img_save_path, result_save_path = get_img_save_dir(os.path.join(SAVE_ROOT_PATH, 'detection'))
 
 		file_path = ''
 		label_path = ''
@@ -93,46 +94,47 @@ class Detection_Predictor(Predictor):
 				file_path, new_file_name = save_img(image, file_name, img_save_path)
 				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
 				print('file saved to %s' % file_path)
+
+				#data['img_path'] = file_path
+			else:
+				return []
 		except:
 			print('upload_file is empty!')
 		finally:
-			return [file_path, label_path]
+			return [file_path, label_path, data]
 
 
-	def predict(self, instance):
+	def predict(self, img):
 		try:
-			if os.path.exists(instance[0]):
-				img = cv2.imread(instance[0])
-				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+			h, w = img.shape[:2]
+			scale = 1
+			if self.long_size != None:
+				scale = self.long_size / max(h, w)
+				img = cv2.resize(img, None, fx=scale, fy=scale)
 
-				h, w = img.shape[:2]
+			# 将图片由(w,h)变为(1,img_channel,h,w)
+			tensor = transforms.ToTensor()(img)
+			tensor = tensor.unsqueeze_(0)
 
-				scale = 1
-				if self.long_size != None:
-					scale = self.long_size / max(h, w)
-					img = cv2.resize(img, None, fx=scale, fy=scale)
+			try:
+				start = timeit.default_timer()
+				result = self.session.run([], {"input": tensor.cpu().numpy()})
+				end = timeit.default_timer()
+				print('[detection] model time: ', end-start)
 
-				# 将图片由(w,h)变为(1,img_channel,h,w)
-				tensor = transforms.ToTensor()(img)
-				tensor = tensor.unsqueeze_(0)
-
-				try:
-					start = timeit.default_timer()
-					result = self.session.run([], {"input": tensor.cpu().numpy()})
-					end = timeit.default_timer()
-					print('model time: ', end-start)
-
-					result = result[0]
-					start = timeit.default_timer()
+				result = result[0]
+				start = timeit.default_timer()
+				if POST_DB:
+					db = DB_Decoder(unclip_ratio=0.5)
+					boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+				else:
 					boxes_list = dist_decode(result[0], scale)
-					end = timeit.default_timer()
-					print('decode time: ', end - start)
 
-					return boxes_list  # {"result": [[...], [...], [...]] }
-				except:
-					return []
-			else:
-				print('image is not exist!')
+				end = timeit.default_timer()
+				print('[detection] decode time: ', end - start)
+
+				return boxes_list  # {"result": [[...], [...], [...]] }
+			except:
 				return []
 		except:
 			return []
@@ -144,14 +146,33 @@ class Detection_Predictor(Predictor):
 
 	def _predict_instance(self, instance):
 		try:
-			boxes_list = self.predict(instance)
+			img = None
+			if os.path.exists(instance[0]):
+				img = cv2.imread(instance[0])
+				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+			else:
+				print('image is not exist!')
+				return {"result": [], "image":""}
+
+			boxes_list = self.predict(img)
 			save_boxes(instance[1], boxes_list)
-			return {"result": boxes_list}  # {"result": [[...], [...], [...]] }
+
+			# add to DB
+			json_data = instance[2]
+			#
+
+			if len(boxes_list) == 0:
+				return {"result": [], "image":""}
+
+			base64_img = self.get_draw_img(instance[0], boxes_list)
+			return {"result": boxes_list, "image":base64_img, "imgid":-1}  # {"result": [[...], [...], [...]] }
 
 		except:
-			return {"result":[]}
+			return {"result":[], "image":""}
 
-#{"result":[{"position":[-1, -1, -1, -1], "text":"123"}]}
+#{"result":[ [[290, 239], [360, 249], [356, 270], [287, 259]],
+# 				[[358, 250], [423, 164], [451, 186], [386, 271]]
+# 				]}
 
 if __name__ == '__main__':
 	demo()

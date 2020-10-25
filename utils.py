@@ -50,7 +50,7 @@ def check_for_gpu(device_id: Union[int, list]):
 def get_img_save_dir(root_path='../../../'):
     # 按日期创建文件夹存图片
     date_now = time.strftime("%Y%m%d", time.localtime())
-    root_path = os.path.join(root_path, 'users_data')
+    #root_path = os.path.join(root_path, 'users_data')
     save_path = os.path.join(root_path, date_now)
     img_save_path = os.path.join(save_path, 'imgs')
     result_save_path = os.path.join(save_path, 'results')
@@ -119,7 +119,7 @@ def sigmoid(x):
     s = 1 / (1 + np.exp(-x))
     return s
 
-def draw_bbox(img_path, result, color=(255, 0, 0),thickness=2):
+def draw_bbox(img_path, result, color=(255, 0, 0),thickness=2, text_list = None):
     if isinstance(img_path, str):
         img_path = cv2.imread(img_path)
         # img_path = cv2.cvtColor(img_path, cv2.COLOR_BGR2RGB)
