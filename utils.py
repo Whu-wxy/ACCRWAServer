@@ -109,7 +109,8 @@ def save_img(image_data, image_name, img_save_path):
     if not os.path.exists(img_save_path):
         raise ValueError("img_save_path not exist!")
 
-    image_name = str(len(os.listdir(img_save_path)) + 1) + '.' + get_extention(image_name)
+    max_val = max([int(name.split('.')[0]) for name in os.listdir(img_save_path)])
+    image_name = str(max_val + 1) + '.' + get_extention(image_name)
     cv2.imwrite(os.path.join(img_save_path, image_name), image_data)
 
     return os.path.join(img_save_path, image_name), image_name

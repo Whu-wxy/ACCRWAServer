@@ -15,8 +15,12 @@ def base64_to_cv2(b64str):
     image = cv2.imdecode(data, cv2.IMREAD_COLOR)
     return image
 
+
+
 def post():
 	URL = 'http://127.0.0.1:8009/predict'
+	#URL = 'http://119.3.124.157:8009/predict'
+
 
 	post_data = {
 		"username": "12345667890",
@@ -53,6 +57,7 @@ def post():
 
 def status(url):
 	URL = 'http://127.0.0.1:8009' +url
+	URL = 'http://119.3.124.157:8009' +url
 
 	req = requests.get(url=URL)
 
@@ -61,20 +66,29 @@ def status(url):
 	print(data)
 
 
+def long_test():
+	for i in range(7200):
+		time.sleep(2)
+		data = post()
+
+
 if __name__ == '__main__':
+	#long_test()
+
 	# for i in range(10):
 	# 	data = post()
 	data1 = post()
-	data2 = post()
-	data3 = post()
-	data4 = post()
+	# data2 = post()
+	# data3 = post()
+	# data4 = post()
+	#
+	# for i in range(30):
+	# 	time.sleep(1)
+	# 	status(data1['location'])
+	# 	status(data2['location'])
+	# 	status(data3['location'])
+	# 	status(data4['location'])
 
-	for i in range(30):
-		time.sleep(1)
-		status(data1['location'])
-		status(data2['location'])
-		status(data3['location'])
-		status(data4['location'])
 	# 	status(data4['location'].replace('status', 'revoke'))
 	#
 	# status(data1['location'].replace('status', 'revoke'))
