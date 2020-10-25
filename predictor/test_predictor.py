@@ -1,9 +1,11 @@
 from predictor.Predictor import Predictor
+from Sqlite3.sqlite import db_add_item
 import time
 import os
 from werkzeug.utils import secure_filename
 from utils import  allowed_file, save_img, base64_to_cv2, get_img_save_dir
 from flask import request
+from config import *
 
 @Predictor.register('test')
 class TestPredictor(Predictor):
@@ -16,6 +18,8 @@ class TestPredictor(Predictor):
 
 	def _json_preprocessing(self, data):
 		#print("receive data: ", data)
+		db_add_item(data)
+		print('xxxxxx')
 		time.sleep(5)
 		return [1, 1, 0, 0]
 

@@ -15,13 +15,15 @@ from utils import check_for_gpu, allowed_file
 from celery import Celery
 from celery.app.task import Task
 from celery.app.control import Control
+from Sqlite3.sqlite import db_add_score
+from config import *
 
 monkey.patch_all()
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-predictor_name = 'test'
+predictor_name = PREDICTOR
 port = 8009
 
 class ServerError(Exception):
@@ -74,7 +76,7 @@ def predict() -> Response:  # pylint: disable=unused-variable
     json_data = request.get_json()
     task = celery_predict.delay(json_data)
     print('task id: ', task.id)
-    return jsonify({'state':task.state, 'Location': url_for('taskstate', task_id=task.id)})
+    return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
 
 @app.route('/status/<task_id>', methods=['GET'])
 def taskstate(task_id):
@@ -102,6 +104,16 @@ def taskrevoke(task_id):
     response = {'state': task.state}
     return jsonify(response)
 
+
+@app.route('/score', methods=['POST'])
+def score():
+    json_data = request.get_json()
+    db_add_score()
+    # {"imgid":23, "score":4.5}
+
+
+
+    return jsonify({})
 
 
 if __name__ == "__main__":
