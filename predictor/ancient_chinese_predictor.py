@@ -53,9 +53,12 @@ def demo():
 	print(result.shape)
 
 	start = timeit.default_timer()
-	# boxes_list = dist_decode(result[0], scale, dmax=0.6, center_th=0.91, full_th=0.91)
-	db = DB_Decoder(unclip_ratio=0.5)
-	boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+	if POST_DB:
+		db = DB_Decoder(unclip_ratio=0.5)
+		boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+	else:
+		from predictor.detection_predictor.dist import decode as dist_decode
+		boxes_list = dist_decode(result[0], scale)
 
 	end = timeit.default_timer()
 	print('decode time: ', end - start)
