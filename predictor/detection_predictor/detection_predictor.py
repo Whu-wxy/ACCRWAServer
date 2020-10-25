@@ -152,7 +152,7 @@ class Detection_Predictor(Predictor):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"result": [], "image":""}
+				return {"boxes": [], "image":""}
 
 			boxes_list = self.predict(img)
 			save_boxes(instance[1], boxes_list)
@@ -162,13 +162,13 @@ class Detection_Predictor(Predictor):
 			#
 
 			if len(boxes_list) == 0:
-				return {"result": [], "image":""}
+				return {"boxes": [], "image":""}
 
 			base64_img = self.get_draw_img(instance[0], boxes_list)
-			return {"result": boxes_list, "image":base64_img, "imgid":-1}  # {"result": [[...], [...], [...]] }
+			return {"boxes": boxes_list, "image":base64_img, "imgid":-1}  # {"result": [[...], [...], [...]] }
 
 		except:
-			return {"result":[], "image":""}
+			return {"boxes":[], "image":""}
 
 #{"result":[ [[290, 239], [360, 249], [356, 270], [287, 259]],
 # 				[[358, 250], [423, 164], [451, 186], [386, 271]]

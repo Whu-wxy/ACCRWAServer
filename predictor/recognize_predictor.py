@@ -37,16 +37,17 @@ class Recognize_Predictor(Predictor):
 		file_path = ''
 		label_path = ''
 		try:
-			# file_name = secure_filename(data['imgname'])
-			# image = base64_to_cv2(data['image'])
-			# if allowed_file(file_name):
-			# 	file_path, new_file_name = save_img(image, file_name, img_save_path)
-			# 	label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
-			# 	print('file saved to %s' % file_path)
-			#
-			# 	#data['img_path'] = file_path
-			# else:
-			# 	return []
+			pass
+		# file_name = secure_filename(data['imgname'])
+		# image = base64_to_cv2(data['image'])
+		# if allowed_file(file_name):
+		# 	file_path, new_file_name = save_img(image, file_name, img_save_path)
+		# 	label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
+		# 	print('file saved to %s' % file_path)
+		#
+		# 	#data['img_path'] = file_path
+		# else:
+		# 	return []
 		except:
 			print('upload_file is empty!')
 		finally:
@@ -90,7 +91,7 @@ class Recognize_Predictor(Predictor):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"result": []}
+				return {"boxes": []}
 			text_list = self.predict(img)
 			os.rename(instance[0], "XXXX")
 
@@ -99,12 +100,12 @@ class Recognize_Predictor(Predictor):
 			#
 
 			if len(text_list) == 0:
-				return {"result": []}
+				return {"boxes": []}
 
-			return {"result": text_list}  # {"result": [[...], [...], [...]] }
+			return {"boxes": text_list}  # {"result": [[...], [...], [...]] }
 
 		except:
-			return {"result":text_list}
+			return {"boxes":text_list}
 
 #{"result":[ ["A", 0.8], ["B", 0.2] ]}
 
