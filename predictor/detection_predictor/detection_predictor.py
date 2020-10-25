@@ -91,7 +91,6 @@ class Detection_Predictor(Predictor):
 		file_path = ''
 		label_path = ''
 		try:
-			print(data)
 			file_name = secure_filename(data['imgname'])
 			image = base64_to_cv2(data['image'])
 			if allowed_file(file_name):
