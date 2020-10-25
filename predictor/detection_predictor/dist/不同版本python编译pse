@@ -1,0 +1,6 @@
+https://blog.csdn.net/ab0902cd/article/details/88352417
+
+将Makefile文件的以下行
+CXXFLAGS = -I include  -std=c++11 -O3 $(shell python3-config --cflags)
+中的$(shell python3-config --cflags)替换为
+-I/home/xx/anaconda3/include/python3.6m
