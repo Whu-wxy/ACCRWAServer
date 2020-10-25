@@ -8,7 +8,6 @@ import onnxruntime
 import cv2
 from torchvision import transforms
 import numpy as np
-from predictor.detection_predictor.dist import decode as dist_decode
 from predictor.detection_predictor.db_decode import DB_Decoder
 from werkzeug.utils import secure_filename
 from predictor.detection_predictor.detection_predictor import Detection_Predictor
