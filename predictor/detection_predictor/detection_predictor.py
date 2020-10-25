@@ -8,7 +8,6 @@ import onnxruntime
 import cv2
 from torchvision import transforms
 import numpy as np
-from predictor.detection_predictor.dist import decode as dist_decode
 from predictor.detection_predictor.db_decode import DB_Decoder
 
 from werkzeug.utils import secure_filename
@@ -53,8 +52,12 @@ def demo():
 	start = timeit.default_timer()
 	#boxes_list = dist_decode(result[0], scale, dmax=0.6, center_th=0.91, full_th=0.91)
 
-	db = DB_Decoder(unclip_ratio=0.5)
-	boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+	if POST_DB:
+		db = DB_Decoder(unclip_ratio=0.5)
+		boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+	else:
+		from predictor.detection_predictor.dist import decode as dist_decode
+		boxes_list = dist_decode(result[0], scale)
 
 	end = timeit.default_timer()
 	print('decode time: ', end - start)
@@ -128,6 +131,7 @@ class Detection_Predictor(Predictor):
 					db = DB_Decoder(unclip_ratio=0.5)
 					boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
 				else:
+					from predictor.detection_predictor.dist import decode as dist_decode
 					boxes_list = dist_decode(result[0], scale)
 
 				end = timeit.default_timer()
