@@ -62,8 +62,8 @@ def status(url):
 
 
 if __name__ == '__main__':
-	for i in range(10):
-		data = post()
+	# for i in range(10):
+	# 	data = post()
 	data1 = post()
 	data2 = post()
 	data3 = post()

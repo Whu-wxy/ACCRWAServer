@@ -61,7 +61,9 @@ def celery_predict(self, json_data):
     global predictor
     self.update_state(state='PROGRESS')
     prediction = predictor.predict_json(json_data)
-    return prediction
+    result = {}
+    result['result'] = prediction
+    return result
 
 
 @app.errorhandler(ServerError)
@@ -108,7 +110,7 @@ def taskrevoke(task_id):
 @app.route('/score', methods=['POST'])
 def score():
     json_data = request.get_json()
-    db_add_score()
+    db_add_score(json_data)
     # {"imgid":23, "score":4.5}
 
 

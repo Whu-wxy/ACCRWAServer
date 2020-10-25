@@ -150,7 +150,7 @@ class AncientChinesePredictor(Predictor):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"result": [], "image": ""}
+				return {"boxes": [], "image": ""}
 			boxes_list, text_list = self.predict(img)
 			save_boxes(instance[1], boxes_list, text_list)
 
@@ -162,7 +162,7 @@ class AncientChinesePredictor(Predictor):
 			#
 
 			if len(boxes_list) == 0:
-				return {"result": [], "image": ""}
+				return {"boxes": [], "image": ""}
 
 			base64_img = self.get_draw_img(instance[0], boxes_list, text_list)
 			result = {}
@@ -172,12 +172,12 @@ class AncientChinesePredictor(Predictor):
 				result_dict["position"] = box
 				result_dict["text"] = text
 				result_list.append(result_dict)
-			result["result"] = result_list
+			result["boxes"] = result_list
 			result["image"] = base64_img
 			result["id"] = id
 			return result
 		except:
-			return {"result": [], "image":""}
+			return {"boxes": [], "image":""}
 
 
 #{'result': [{'position': [[290, 239], [360, 249], [356, 270], [287, 259]], 'text': '1'},

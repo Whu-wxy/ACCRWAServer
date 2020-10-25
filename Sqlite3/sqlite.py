@@ -36,7 +36,19 @@ def db_delete_item(id):
     conn.close()
     print('Execute success')
 
-def db_add_score(id,score):
+def db_add_score(post_data):
+	conn = sqlite3.connect(DB_PATH)
+	print("Connect success")
+	cur = conn.cursor()
+	score = post_data.get("score", 0)
+	id = post_data.get("id")
+	cur.execute("UPDATE ACCRWA set SCORE = ? where ID=?", (score, id), )
+	cur.close()
+	conn.commit()
+	conn.close()
+	print('Execute success')
+
+'''def db_add_score(id,score):
 	conn = sqlite3.connect(DB_PATH)
 	print("Connect success")
 	cur = conn.cursor()
@@ -44,7 +56,7 @@ def db_add_score(id,score):
 	cur.close()
 	conn.commit()
 	conn.close()
-	print('Execute success')
+	print('Execute success')'''
 
 
 
