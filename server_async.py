@@ -47,16 +47,33 @@ app = Flask(__name__)  # pylint: disable=invalid-name
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 # 要存储 Celery 任务的状态或运行结果时就必须要配置
 app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+
+# app.config['CELERYD_MAX_TASKS_PER_CHILD'] = 20
+# app.config['CELERY_IGNORE_RESULT'] = True
+#
+# #任务过期时间，单位为s，默认为一
+# app.config['CELERY_TASK_RESULT_EXPIRE'] = 1000
+# #backen缓存结果的数目，默认5000
+# app.config['CELERY_MAX_CACHED_RESULT'] = 500
+
+
 # 初始化Celery
 celery_app = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 # 将Flask中的配置直接传递给Celery
 celery_app.conf.update(app.config)
 
+celery_app.conf.CELERYD_MAX_TASKS_PER_CHILD = 20
+celery_app.conf.CELERY_IGNORE_RESULT = True
+#任务过期时间，单位为s，默认为一
+celery_app.conf.CELERY_TASK_RESULT_EXPIRE = 1000
+#backen缓存结果的数目，默认5000
+celery_app.conf.CELERY_MAX_CACHED_RESULT = 500
+
 control = Control(celery_app)
 
 predictor = Predictor.by_name(predictor_name)()
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, ignore_result=True)
 def celery_predict(self, json_data):
     global predictor
     self.update_state(state='PROGRESS')
