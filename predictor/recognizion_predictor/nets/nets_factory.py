@@ -28,7 +28,7 @@ import tensorflow as tf
 # from nets import mobilenet_v1
 # from nets import overfeat
 # from nets import resnet_v1
-from nets import resnet_v2
+from predictor.recognizion_predictor.nets import resnet_v2
 # from nets import vgg
 
 slim = tf.contrib.slim

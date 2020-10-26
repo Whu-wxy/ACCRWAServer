@@ -45,18 +45,18 @@ def tf_preprocess_image(image, output_height, output_width):
     return image
 
 def get_tf_preprocess_image():
-    
+
     def foo(image, output_height, output_width):
         image = tf_preprocess_image(
         image, output_height, output_width)
         return tf.image.per_image_standardization(image)
     return foo
 
-tf.reset_default_graph()
+# tf.reset_default_graph()
 
 n = 1
 
-img = cv_imread('./testimages/0.jpg')
+img = cv_imread('../../0.jpg')
 image = cv_preprocess_image(img, 224,224)
 image2 = np.expand_dims(image, 0)
 
@@ -69,14 +69,14 @@ logits, _ = network_fn(images)
 eval_ops = logits
 variables_to_restore = slim.get_variables_to_restore()
 
-def load_model(): 
+def load_model():
     #tf.reset_default_graph()
     checkpoint_path = './products/train_logs_resnet_v2_50/model.ckpt-100000'
     with tf.Session() as session:
         saver = tf_saver.Saver(variables_to_restore)
         saver.restore(session, checkpoint_path)
         results = []
-        lo = 0          
+        lo = 0
         while lo != len(image2):
             hi = min(len(image2), lo + n)
             feed_data = image2[lo:hi]
@@ -85,12 +85,12 @@ def load_model():
             logits = np.concatenate(results, axis=0)
             lo = hi
 
-    return logits 
- 
+    return logits
+
 def main():
     with open('./products/cates.json') as f:
         lines = f.read()
-        cates = json.loads(lines.strip()) 
+        cates = json.loads(lines.strip())
     logits = load_model()
     assert 3755  == logits.shape[1]
     logits = logits[:, :3755]
@@ -114,8 +114,8 @@ def main():
         lo += 1
     for i in range (5):
         print('predictions',predictions[0][i], probabilities[0][i])
-                
-    
+
+
 if __name__ == '__main__':
     main()
-    
+

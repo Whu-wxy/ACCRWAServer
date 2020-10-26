@@ -16,15 +16,17 @@ from utils import *
 import timeit
 import copy
 from config import *
+from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor
 
 def demo():
 
-	long_size = 1500
-	img_path = './test.jpg'
+	long_size = 1600
+	img_path = './test3.jpg'
 	print(onnxruntime.get_device())
 
 
-	detector = onnxruntime.InferenceSession(MODEL_PATH)
+	detector = onnxruntime.InferenceSession(DETECTION_MODEL_PATH)
+	recognizor = Recognize_Predictor()
 
 	detector.get_modelmeta()
 	first_input_name = detector.get_inputs()[0].name
@@ -53,7 +55,7 @@ def demo():
 
 	start = timeit.default_timer()
 	if POST_DB:
-		db = DB_Decoder(unclip_ratio=0.5)
+		db = DB_Decoder(unclip_ratio=1.5)
 		boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
 	else:
 		from predictor.detection_predictor.dist import decode as dist_decode
@@ -62,26 +64,12 @@ def demo():
 	end = timeit.default_timer()
 	print('decode time: ', end - start)
 
-	# boxes_list = np.array(boxes_list)
-	# final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
-	# cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
-	# cv2.imshow('final_img', final_img)
-	# cv2.waitKey()
+	final_img = draw_bbox(img_path, np.array(boxes_list), color=(0, 0, 255))
+	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
+	cv2.imshow('final_img', final_img)
+	cv2.waitKey()
 
 	#cv2.imwrite('./test_db_decode0.5.jpg', final_img)
-
-	# sorted_boxes_list = sorted_boxes(np.array(boxes_list))
-	# crop_imgs = []
-	# for index, box in enumerate(sorted_boxes_list):
-	# 	tmp_box = copy.deepcopy(box)
-	# 	partImg = get_rotate_crop_image(img, tmp_box.astype(np.float32))
-	# 	h, w = partImg.shape[:2]
-	# 	if min(h, w) < 10:
-	# 		continue
-	# 	crop_imgs.append(partImg)
-	# 	cv2.namedWindow("partImg", cv2.WINDOW_NORMAL)
-	# 	cv2.imshow('partImg', partImg)
-	# 	cv2.waitKey()
 
 	result = {}
 	result_list = []
@@ -90,11 +78,15 @@ def demo():
 		result_dict["position"] = box
 		partImg = get_rotate_crop_image(img, np.array(box).astype(np.float32))
 		h, w = partImg.shape[:2]
+		print(partImg.shape)
 		if min(h, w) < 10:
 			continue
-		# cv2.namedWindow("partImg", cv2.WINDOW_NORMAL)
-		# cv2.imshow('partImg', partImg)
-		# cv2.waitKey()
+
+		texts = recognizor.predict(partImg)
+		print(texts)
+		cv2.namedWindow("partImg", cv2.WINDOW_NORMAL)
+		cv2.imshow('partImg', partImg)
+		cv2.waitKey()
 		result_dict["text"] = "1"
 		result_list.append(result_dict)
 	result["result"] = result_list
@@ -105,10 +97,9 @@ def demo():
 
 @Predictor.register('ancient-chinese')
 class AncientChinesePredictor(Predictor):
-
 	def __init__(self):
 		self.detector = Detection_Predictor()
-		sefl.recognizer = None
+		self.recognizor = Recognize_Predictor()
 
 		self._model_init()
 
@@ -128,12 +119,16 @@ class AncientChinesePredictor(Predictor):
 				h, w = crop_img.shape[:2]
 				if min(h, w) < 10:
 					continue
-				text = self.recognizer.predict(crop_img)
+				texts = self.recognizor.predict(crop_img)
+				print(texts)
+				if len(texts) != 0:
+					text = texts[0][0]
+				else:
+					text = ""
 
 				#是否需要把图像块存起来
 
 				text_list.append(text)
-
 			return boxes_list, text_list
 		except:
 			return [], []
@@ -164,29 +159,45 @@ class AncientChinesePredictor(Predictor):
 			#
 
 			if len(boxes_list) == 0:
-				return {"boxes": [], "image": ""}
+				return {"boxes": [], "image": "", "imgid": -1}
 
 			base64_img = self.get_draw_img(instance[0], boxes_list, text_list)
 			result = {}
 			result_list = []
 			for box, text in zip(boxes_list, text_list):
 				result_dict = {}
-				result_dict["position"] = box
+				result_dict["boxes"] = box
 				result_dict["text"] = text
 				result_list.append(result_dict)
-			result["boxes"] = result_list
+			result["result"] = result_list
 			result["image"] = base64_img
-			result["id"] = id
+			result["imgid"] = id
 			return result
 		except:
-			return {"boxes": [], "image":""}
+			return {"boxes": [], "image":"", "imgid": -1}
 
 
 #{'result': [{'position': [[290, 239], [360, 249], [356, 270], [287, 259]], 'text': '1'},
 #            {'position': [[358, 250], [423, 164], [451, 186], [386, 271]], 'text': '1'}],
-#            'image': 'asdfsdfsdwerwvdf'}
+#            'image': 'asdfsdfsdwerwvdf', 'imgid': 32}
 
 
 
 if __name__ == '__main__':
-	demo()
+	# demo()
+
+	sess = AncientChinesePredictor()
+	img = cv2.imread('./test3.jpg')
+	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+	boxes_list, text_list = sess.predict(img)
+	result = {}
+	result_list = []
+	for box, text in zip(boxes_list, text_list):
+		result_dict = {}
+		result_dict["boxes"] = box
+		result_dict["text"] = text
+		result_list.append(result_dict)
+	result["result"] = result_list
+	result["image"] = "sdfsdfsd"
+	result["imgid"] = -1
+	print(result)
