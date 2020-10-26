@@ -62,30 +62,45 @@ def get_tf_preprocess_image():
 	return foo
 
 
+# image_preprocessing_fn = get_tf_preprocess_image()
+# image_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
+# network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
+# images = [image_preprocessing_fn(image_holder, 224, 224)]
+# eval_ops, _ = network_fn(images)
+# variables_to_restore = slim.get_variables_to_restore()
+#
+# session = tf.Session()
+#
+# saver = tf_saver.Saver(variables_to_restore)
+# saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
 
-#@Predictor.register('recognize')
+
+# @Predictor.register('recognize')
 class Recognize_Predictor(Predictor):
 
 	def __init__(self):
 		self.session = None
 		self.ops = None
 		self.cates = None
+		self.image_holder = None
+		self.graph = tf.Graph()
 
 		self._model_init()
 
 	def _model_init(self):
-		self.session = tf.Session()
+		with self.graph.as_default():
+			self.session = tf.Session()
 
-		image_preprocessing_fn = get_tf_preprocess_image()
-		images_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
-		network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
-		eval_image_size = 224
-		images = [image_preprocessing_fn(images_holder, eval_image_size, eval_image_size)]
-		eval_ops, _ = network_fn(images)
-		self.ops = eval_ops
-		variables_to_restore = slim.get_variables_to_restore()
-		saver = tf_saver.Saver(variables_to_restore)
-		saver.restore(self.session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
+			image_preprocessing_fn = get_tf_preprocess_image()
+			self.image_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
+			network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
+			images = [image_preprocessing_fn(self.image_holder, 224, 224)]
+			eval_ops, _ = network_fn(images)
+			self.ops = eval_ops
+
+			variables_to_restore = slim.get_variables_to_restore()
+			saver = tf_saver.Saver(variables_to_restore)
+			saver.restore(self.session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
 
 		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
 			lines = f.read()
@@ -98,17 +113,16 @@ class Recognize_Predictor(Predictor):
 		file_path = ''
 		label_path = ''
 		try:
-			pass
-		# file_name = secure_filename(data['imgname'])
-		# image = base64_to_cv2(data['image'])
-		# if allowed_file(file_name):
-		# 	file_path, new_file_name = save_img(image, file_name, img_save_path)
-		# 	label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
-		# 	print('file saved to %s' % file_path)
-		#
-		# 	#data['img_path'] = file_path
-		# else:
-		# 	return []
+			file_name = secure_filename(data['imgname'])
+			image = base64_to_cv2(data['image'])
+			if allowed_file(file_name):
+				file_path, new_file_name = save_img(image, file_name, img_save_path)
+				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
+				print('file saved to %s' % file_path)
+
+				#data['img_path'] = file_path
+			else:
+				return []
 		except:
 			print('upload_file is empty!')
 		finally:
@@ -117,12 +131,22 @@ class Recognize_Predictor(Predictor):
 
 	def predict(self, img):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
-		# try:
+		try:
 			img = cv_preprocess_image(img, 224, 224)
 			# try:
-			images_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
 			start = timeit.default_timer()
-			logits = self.session.run(self.ops, feed_dict={images_holder: img})
+
+			# with tf.Session() as session:
+			# 	variables_to_restore = slim.get_variables_to_restore()
+			# 	saver = tf_saver.Saver(variables_to_restore)
+			# 	saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
+			# 	logits = session.run(self.ops, feed_dict={self.image_holder: img})
+
+			# global session, eval_ops, image_holder
+			# logits = session.run(eval_ops, feed_dict={image_holder: img})
+
+
+			logits = self.session.run(self.ops, feed_dict={self.image_holder: img})
 
 			assert 3755 == logits.shape[1]
 			logits = logits[:, :3755]
@@ -140,17 +164,18 @@ class Recognize_Predictor(Predictor):
 			pred = list(map(lambda i: self.cates[i]['text'], pred.tolist()))
 			predictions.append(pred)
 			probabilities.append(prob)
+
+			result = []
 			for i in range(5):
-				print('predictions', predictions[0][i], probabilities[0][i])
+				result.append([str(predictions[0][i]), float(probabilities[0][i])])
+				# print('predictions', predictions[0][i], probabilities[0][i])
 
 			end = timeit.default_timer()
 			print('[recognize] model time: ', end-start)
 
-			return ['1']
-		# 	except:
-		# 		return ['2']
-		# except:
-		# 	return ['3']
+			return result
+		except:
+			return []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
@@ -164,28 +189,161 @@ class Recognize_Predictor(Predictor):
 				print('image is not exist!')
 				return {"boxes": []}
 			text_list = self.predict(img)
-			os.rename(instance[0], "XXXX")
+			if len(text_list) != 0:
+				os.rename(instance[0], text_list[0][0])
 
 			# add to DB
 			json_data = instance[2]
 			#
 
 			if len(text_list) == 0:
-				return {"boxes": []}
+				return {"text": []}
 
-			return {"boxes": text_list}  # {"result": [[...], [...], [...]] }
+			return {"text": text_list}
 
 		except:
-			return {"boxes":text_list}
+			return {"text": text_list}
 
-#{"result":[ ["A", 0.8], ["B", 0.2] ]}
+
+
+
+# @Predictor.register('recognize2')
+class Recognize_Predictor2(Predictor):
+
+	def __init__(self):
+		self.cates = None
+
+		self._model_init()
+
+	def _model_init(self):
+
+		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
+			lines = f.read()
+			self.cates = json.loads(lines.strip())
+
+	def _json_preprocessing(self, data):
+
+		img_save_path, result_save_path = get_img_save_dir(os.path.join(SAVE_ROOT_PATH, 'recognition'))
+
+		file_path = ''
+		label_path = ''
+		try:
+			file_name = secure_filename(data['imgname'])
+			image = base64_to_cv2(data['image'])
+			if allowed_file(file_name):
+				file_path, new_file_name = save_img(image, file_name, img_save_path)
+				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
+				print('file saved to %s' % file_path)
+
+				#data['img_path'] = file_path
+			else:
+				return []
+		except:
+			print('upload_file is empty!')
+		finally:
+			return [file_path, label_path, data]
+
+
+	def predict(self, img_list):
+		#这里改成直接传图片比较好，方便在ancient_chine里调用
+		# try:
+			n = len(img_list)
+
+			image_preprocessing_fn = get_tf_preprocess_image()
+			images_holder = [tf.placeholder(tf.uint8, shape=(None, None, 3)) for i in range(n)]
+			network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
+			eval_image_size = 224
+			images = [image_preprocessing_fn(images_holder[i], eval_image_size, eval_image_size) for i in range(n)]
+			eval_ops, _ = network_fn(images)
+			variables_to_restore = slim.get_variables_to_restore()
+
+			img_list_temp = []
+			for img in img_list:
+				img = cv_preprocess_image(img, 224, 224)
+				img = np.expand_dims(img, 0)
+				img_list_temp.append(img)
+			img_list_temp = np.concatenate(img_list_temp, axis=0)
+
+			start = timeit.default_timer()
+			with tf.Session() as session:
+				variables_to_restore = slim.get_variables_to_restore()
+				saver = tf_saver.Saver(variables_to_restore)
+				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
+				results = []
+				lo = 0
+				while lo != len(img_list_temp):
+					hi = min(len(img_list_temp), lo + n)
+					feed_data = img_list_temp[lo:hi]
+					logits = session.run(eval_ops, feed_dict={images_holder[i]: feed_data[i] for i in range(n)})
+					results.append(logits[:hi - lo])
+					lo = hi
+				logits = np.concatenate(results, axis=0)
+
+			assert 3755 == logits.shape[1]
+			logits = logits[:, :3755]
+			explogits = np.exp(np.minimum(logits, 70))
+			expsums = np.sum(explogits, axis=1)
+			expsums.shape = (logits.shape[0], 1)
+			expsums = np.repeat(expsums, 3755, axis=1)
+			probs = explogits / expsums
+			argsorts = np.argsort(-logits, axis=1)
+
+			lo = 0
+			# for i in range(n):
+			predictions = []
+			probabilities = []
+			for i in range(n):
+				pred = argsorts[lo][:5]
+				prob = probs[lo][pred].tolist()
+				pred = list(map(lambda i: self.cates[i]['text'], pred.tolist()))
+				predictions.append(pred)
+				probabilities.append(prob)
+				lo += 1
+
+			for i in range(5):
+				print('predictions', predictions[0][i], probabilities[0][i])
+
+			end = timeit.default_timer()
+			print('[recognize] model time: ', end-start)
+
+			return []
+		# except:
+		# 	return []
+
+	def _predict_instance(self, instance):
+		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
+
+		try:
+			img = None
+			if os.path.exists(instance[0]):
+				img = cv2.imread(instance[0])
+				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+			else:
+				print('image is not exist!')
+				return {"boxes": []}
+			text_list = self.predict(img)
+			if len(text_list) != 0:
+				os.rename(instance[0], text_list[0][0])
+
+			# add to DB
+			json_data = instance[2]
+			#
+
+			if len(text_list) == 0:
+				return {"text": []}
+
+			return {"text": text_list}
+
+		except:
+			return {"text": text_list}
+
+
+#{"text":[ ["A", 0.8], ["B", 0.2] ]}
 
 if __name__ == '__main__':
-	RECOGNITION_MODEL_PATH = './products'
-
-	sess = Recognize_Predictor()
-	img = cv2.imread('./testimages/0.jpg')
-	res = sess.predict(img)
+	sess = Recognize_Predictor2()
+	img = cv2.imread('../../0.jpg')
+	res = sess.predict([img, img])
 	print(res)
 
 	# img_save_path, result_save_path = get_img_save_dir('../../../')
