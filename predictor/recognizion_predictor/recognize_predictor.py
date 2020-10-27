@@ -75,7 +75,7 @@ def get_tf_preprocess_image():
 # saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
 
 
-# @Predictor.register('recognize')
+@Predictor.register('recognize')
 class Recognize_Predictor(Predictor):
 
 	def __init__(self):
@@ -207,8 +207,8 @@ class Recognize_Predictor(Predictor):
 
 
 
-# @Predictor.register('recognize2')
-class Recognize_Predictor2(Predictor):
+@Predictor.register('recognize_batch')
+class Recognize_Predictor_batch(Predictor):
 
 	def __init__(self):
 		self.cates = None
@@ -216,7 +216,6 @@ class Recognize_Predictor2(Predictor):
 		self._model_init()
 
 	def _model_init(self):
-
 		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
 			lines = f.read()
 			self.cates = json.loads(lines.strip())
@@ -249,11 +248,14 @@ class Recognize_Predictor2(Predictor):
 		# try:
 			n = len(img_list)
 
+			tf.reset_default_graph()
+			# tf.get_variable_scope().reuse_variables()
+
 			image_preprocessing_fn = get_tf_preprocess_image()
 			images_holder = [tf.placeholder(tf.uint8, shape=(None, None, 3)) for i in range(n)]
 			network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
-			eval_image_size = 224
-			images = [image_preprocessing_fn(images_holder[i], eval_image_size, eval_image_size) for i in range(n)]
+			images = [image_preprocessing_fn(images_holder[i], 224, 224) for i in range(n)]
+			# with tf.variable_scope("a", reuse=True):
 			eval_ops, _ = network_fn(images)
 			variables_to_restore = slim.get_variables_to_restore()
 
@@ -266,7 +268,6 @@ class Recognize_Predictor2(Predictor):
 
 			start = timeit.default_timer()
 			with tf.Session() as session:
-				variables_to_restore = slim.get_variables_to_restore()
 				saver = tf_saver.Saver(variables_to_restore)
 				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
 				results = []
@@ -289,7 +290,6 @@ class Recognize_Predictor2(Predictor):
 			argsorts = np.argsort(-logits, axis=1)
 
 			lo = 0
-			# for i in range(n):
 			predictions = []
 			probabilities = []
 			for i in range(n):
@@ -300,19 +300,18 @@ class Recognize_Predictor2(Predictor):
 				probabilities.append(prob)
 				lo += 1
 
-			for i in range(5):
-				print('predictions', predictions[0][i], probabilities[0][i])
+			# for i in range(5):
+			# 	print('predictions', predictions[0][i], probabilities[0][i])
 
 			end = timeit.default_timer()
 			print('[recognize] model time: ', end-start)
 
-			return []
+			return predictions, probabilities
 		# except:
-		# 	return []
+		# 	return [], []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
-
 		try:
 			img = None
 			if os.path.exists(instance[0]):
@@ -320,8 +319,8 @@ class Recognize_Predictor2(Predictor):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"boxes": []}
-			text_list = self.predict(img)
+				return {"text": [], 'probs': []}
+			text_list, prob_list = self.predict([img])
 			if len(text_list) != 0:
 				os.rename(instance[0], text_list[0][0])
 
@@ -330,20 +329,24 @@ class Recognize_Predictor2(Predictor):
 			#
 
 			if len(text_list) == 0:
-				return {"text": []}
+				return {"text": [], 'probs': []}
 
-			return {"text": text_list}
+			return {"text": text_list, 'probs': prob_list}
 
 		except:
-			return {"text": text_list}
+			return {"text": [], 'probs': []}
 
 
 #{"text":[ ["A", 0.8], ["B", 0.2] ]}
 
 if __name__ == '__main__':
-	sess = Recognize_Predictor2()
+	sess = Recognize_Predictor()
 	img = cv2.imread('../../0.jpg')
-	res = sess.predict([img, img])
+	res = sess.predict(img)
+	print(res)
+	res = sess.predict(img)
+	print(res)
+	res = sess.predict(img)
 	print(res)
 
 	# img_save_path, result_save_path = get_img_save_dir('../../../')

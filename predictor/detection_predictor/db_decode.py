@@ -18,7 +18,7 @@ class DB_Decoder():
 		self.max_candidates = max_candidates
 		self.unclip_ratio = unclip_ratio
 
-	def predict(self, preds, scale, dmax=0.64, center_th=0.95, out_polygon=False):
+	def predict(self, preds, scale, dmax=0.64, out_polygon=False):
 		"""
 		在输出上使用sigmoid 将值转换为置信度，并使用阈值来进行文字和背景的区分
 		:param preds: 网络输出
