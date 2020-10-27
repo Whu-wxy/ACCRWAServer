@@ -135,6 +135,7 @@ dmypy.json
 *.png
 *.db
 *.jpeg
+*.ttc
 
 *.meta
 *.index
