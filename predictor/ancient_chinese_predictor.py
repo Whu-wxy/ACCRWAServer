@@ -96,7 +96,7 @@ def demo():
 
 
 @Predictor.register('ancient-chinese')
-class AdncientChinesePredictor(Predictor):
+class AncientChinesePredictor(Predictor):
 	def __init__(self):
 		self.detector = Detection_Predictor()
 		self.recognizor = Recognize_Predictor_batch()
