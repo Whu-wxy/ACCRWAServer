@@ -31,7 +31,7 @@ def post():
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './0.jpg'
+	img_path = './test3.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -65,6 +65,8 @@ def status(url):
 	data = json.loads(data)
 	print(data)
 
+	return data
+
 
 def long_test():
 	for i in range(7200):
@@ -84,7 +86,16 @@ if __name__ == '__main__':
 	#
 	for i in range(30):
 		time.sleep(1)
-		status(data1['location'])
+		res = status(data1['location'])
+		if res['state'] == 'SUCCESS':
+			break
+
+	img = base64_to_cv2(res['result']['image'])
+	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
+	cv2.imshow('final_img', img)
+	cv2.waitKey()
+
+
 		# status(data2['location'])
 		# status(data3['location'])
 		# status(data4['location'])

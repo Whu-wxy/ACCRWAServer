@@ -77,7 +77,7 @@ class Detection_Predictor(Predictor):
 
 	def __init__(self):
 		self.session = None
-		self.long_size = 1600
+		self.long_size = LONG_SIZE
 
 		self._model_init()
 
@@ -128,11 +128,11 @@ class Detection_Predictor(Predictor):
 				result = result[0]
 				start = timeit.default_timer()
 				if POST_DB:
-					db = DB_Decoder(unclip_ratio=0.5)
-					boxes_list = db.predict(result[0], scale, dmax=0.6, center_th=0.91)
+					db = DB_Decoder(unclip_ratio=UNCLIP_RATIO, box_thresh=DB_THRESH)
+					boxes_list = db.predict(result[0], scale, dmax=D_MAX)
 				else:
 					from predictor.detection_predictor.dist import decode as dist_decode
-					boxes_list = dist_decode(result[0], scale)
+					boxes_list = dist_decode(result[0], scale, dmax=D_MAX)
 
 				end = timeit.default_timer()
 				print('[detection] decode time: ', end - start)

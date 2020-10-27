@@ -16,7 +16,7 @@ from utils import *
 import timeit
 import copy
 from config import *
-from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor
+from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor_batch, Recognize_Predictor
 
 def demo():
 
@@ -96,10 +96,10 @@ def demo():
 
 
 @Predictor.register('ancient-chinese')
-class AncientChinesePredictor(Predictor):
+class AdncientChinesePredictor(Predictor):
 	def __init__(self):
 		self.detector = Detection_Predictor()
-		self.recognizor = Recognize_Predictor()
+		self.recognizor = Recognize_Predictor_batch()
 
 		self._model_init()
 
@@ -110,6 +110,34 @@ class AncientChinesePredictor(Predictor):
 		return self.detector._json_preprocessing(data)
 
 	def predict(self, img):
+		try:
+			boxes_list = self.detector.predict(img)
+
+			text_list = []
+			crop_img_list = []
+			new_box_list = []
+			for box in boxes_list:
+				crop_img = get_rotate_crop_image(img, np.array(box).astype(np.float32))
+				h, w = crop_img.shape[:2]
+				if min(h, w) < 10:
+					continue
+				new_box_list.append(box)
+				crop_img_list.append(crop_img)
+				#是否需要把图像块存起来
+
+			texts, prob_list = self.recognizor.predict(crop_img_list)
+			for text in texts:
+				if len(text) != 0:
+					text = text[0]
+				else:
+					text = ""
+				text_list.append(text)
+			return new_box_list, text_list
+		except:
+			return [], []
+
+
+	def predict_origin(self, img):
 		try:
 			boxes_list = self.detector.predict(img)
 
@@ -133,7 +161,7 @@ class AncientChinesePredictor(Predictor):
 		except:
 			return [], []
 
-	def get_draw_img(self, img_path, boxes_list, text_list):
+	def get_draw_img(self, img_path, boxes_list, text_list=None):
 		boxes_list = np.array(boxes_list)
 		final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255), text_list=text_list)
 		return cvImg_to_base64(img_path, final_img)
@@ -187,9 +215,15 @@ if __name__ == '__main__':
 	# demo()
 
 	sess = AncientChinesePredictor()
-	img = cv2.imread('./test3.jpg')
+	img = cv2.imread('../test5.jpg')
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	boxes_list, text_list = sess.predict(img)
+	base64_img = sess.get_draw_img('../test5.jpg', boxes_list, text_list)
+	img2 = base64_to_cv2(base64_img)
+	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
+	cv2.imshow('img2', img2)
+	cv2.waitKey()
+
 	result = {}
 	result_list = []
 	for box, text in zip(boxes_list, text_list):
