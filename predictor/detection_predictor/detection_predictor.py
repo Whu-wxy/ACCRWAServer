@@ -77,7 +77,6 @@ class Detection_Predictor(Predictor):
 
 	def __init__(self):
 		self.session = None
-		self.long_size = LONG_SIZE
 
 		self._model_init()
 
@@ -115,7 +114,10 @@ class Detection_Predictor(Predictor):
 			# 	scale = self.long_size / max(h, w)
 			# 	img = cv2.resize(img, None, fx=scale, fy=scale)
 
+			if max(h, w)*scale > MAX_LONG_SIZE:
+				scale = MAX_LONG_SIZE*1.0 / max(h, w)
 			img = cv2.resize(img, None, fx=scale, fy=scale)
+			print(scale)
 
 			# 将图片由(w,h)变为(1,img_channel,h,w)
 			tensor = transforms.ToTensor()(img)
