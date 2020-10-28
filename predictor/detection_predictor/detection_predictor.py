@@ -110,10 +110,12 @@ class Detection_Predictor(Predictor):
 	def predict(self, img):
 		try:
 			h, w = img.shape[:2]
-			scale = 1
-			if self.long_size != None:
-				scale = self.long_size / max(h, w)
-				img = cv2.resize(img, None, fx=scale, fy=scale)
+			scale = IMG_SCALE
+			# if self.long_size != None:
+			# 	scale = self.long_size / max(h, w)
+			# 	img = cv2.resize(img, None, fx=scale, fy=scale)
+
+			img = cv2.resize(img, None, fx=scale, fy=scale)
 
 			# 将图片由(w,h)变为(1,img_channel,h,w)
 			tensor = transforms.ToTensor()(img)
