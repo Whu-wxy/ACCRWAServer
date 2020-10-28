@@ -2,6 +2,7 @@ PREDICTOR = 'ancient-chinese'    # detection  ancient-chinese  recognize recogni
 
 DETECTION_MODEL_PATH = '/home/beidou/PycharmProjects/ACCRWAServer/models/mobilenet.onnx'  #./models/mobilenet.onnx
 LONG_SIZE = 2000    # None
+IMG_SCALE = 1.5
 POST_DB = True
 UNCLIP_RATIO = 1.5
 D_MAX = 0.6
