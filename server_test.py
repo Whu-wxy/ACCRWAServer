@@ -34,7 +34,7 @@ def post():
 	img_path = './test3.jpg'
 
 	# 发送HTTP请求
-	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
+	# post_data['image'] = cv2_to_base64(cv2.imread(img_path))
 	#img = base64_to_cv2(post_data['image'])
 	# headers = {"Content-type": "application/json"}
 	# req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
