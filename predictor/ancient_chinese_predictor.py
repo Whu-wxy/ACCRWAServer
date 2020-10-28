@@ -125,6 +125,8 @@ class AncientChinesePredictor(Predictor):
 				crop_img_list.append(crop_img)
 				#是否需要把图像块存起来
 
+			if len(crop_img_list) == 0:
+				return [], []
 			texts, prob_list = self.recognizor.predict(crop_img_list)
 			for text in texts:
 				if len(text) != 0:

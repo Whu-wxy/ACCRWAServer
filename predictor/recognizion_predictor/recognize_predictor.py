@@ -245,7 +245,7 @@ class Recognize_Predictor_batch(Predictor):
 
 	def predict(self, img_list):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
-		# try:
+		try:
 			n = len(img_list)
 
 			tf.reset_default_graph()
@@ -307,8 +307,8 @@ class Recognize_Predictor_batch(Predictor):
 			print('[recognize] model time: ', end-start)
 
 			return predictions, probabilities
-		# except:
-		# 	return [], []
+		except:
+			return [], []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
