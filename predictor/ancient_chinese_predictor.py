@@ -170,12 +170,12 @@ class AncientChinesePredictor(Predictor):
 	def _predict_instance(self, instance):
 		try:
 			img = None
-			if os.path.exists(instance[0]):
+			if len(instance)!=0 and os.path.exists(instance[0]):
 				img = cv2.imread(instance[0])
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"boxes": [], "image": ""}
+				return {"boxes": [], "image": "", "imgid": -1}
 			boxes_list, text_list = self.predict(img)
 			save_boxes(instance[1], boxes_list, text_list)
 
