@@ -139,7 +139,7 @@ def score():
 
 if __name__ == "__main__":
     CORS(app)
-    http_server = WSGIServer(('0.0.0.0', port), app,
-                             ssl_context=('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key'))
+    http_server = WSGIServer(('0.0.0.0', port), app, keyfile='./models/SSL/4695946_www.72qier.icu.key', certfile='./models/SSL/4695946_www.72qier.icu.pem')
+                             # ssl_context=('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key'))
     print(f"Serving demo on port {port}")
     http_server.serve_forever()
