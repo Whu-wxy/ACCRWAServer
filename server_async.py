@@ -44,7 +44,7 @@ class ServerError(Exception):
 
 app = Flask(__name__)  # pylint: disable=invalid-name
 app.debug = False
-app.ssl_context = ('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key')
+# app.ssl_context = ('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key')
 # 配置消息代理的路径
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 # 要存储 Celery 任务的状态或运行结果时就必须要配置
@@ -139,6 +139,7 @@ def score():
 
 if __name__ == "__main__":
     CORS(app)
-    http_server = WSGIServer(('0.0.0.0', port), app)
+    http_server = WSGIServer(('0.0.0.0', port), app,
+                             ssl_context=('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key'))
     print(f"Serving demo on port {port}")
     http_server.serve_forever()
