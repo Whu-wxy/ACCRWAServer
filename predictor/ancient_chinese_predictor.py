@@ -95,7 +95,7 @@ def demo():
 
 
 
-@Predictor.register('ancient-chinese')
+# @Predictor.register('ancient-chinese')
 class AncientChinesePredictor(Predictor):
 	def __init__(self):
 		self.detector = Detection_Predictor()
@@ -163,9 +163,9 @@ class AncientChinesePredictor(Predictor):
 		except:
 			return [], []
 
-	def get_draw_img(self, img_path, boxes_list, text_list=None):
+	def get_draw_img(self, img_path, boxes_list, text_list=None, thickness=2):
 		boxes_list = np.array(boxes_list)
-		final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255), text_list=text_list)
+		final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255), text_list=text_list, thickness=thickness)
 		return cvImg_to_base64(img_path, final_img)
 
 
@@ -217,14 +217,15 @@ if __name__ == '__main__':
 	# demo()
 
 	sess = AncientChinesePredictor()
-	img = cv2.imread('../test5.jpg')
+	img = cv2.imread('../116.jpg')
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	boxes_list, text_list = sess.predict(img)
-	base64_img = sess.get_draw_img('../test5.jpg', boxes_list, text_list)
+	base64_img = sess.get_draw_img('../116.jpg', boxes_list, text_list)
 	img2 = base64_to_cv2(base64_img)
 	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
 	cv2.imshow('img2', img2)
 	cv2.waitKey()
+	# cv2.imwrite("../../save.jpg", img2)
 
 	result = {}
 	result_list = []
