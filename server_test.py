@@ -59,7 +59,7 @@ def post():
 def status(url):
 	URL = 'http://127.0.0.1:8009' +url
 	# URL = 'http://119.3.124.157:8009' +url
-	URL = 'http://www.72qier.icu:8009' +url
+	URL = 'https://www.72qier.icu:8009' +url
 
 	req = requests.get(url=URL)
 

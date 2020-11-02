@@ -46,9 +46,8 @@ class DB_Decoder():
 		else:
 			boxes, scores = self.boxes_from_bitmap(bi_region, center)
 
-		boxes = np.array(boxes).astype(int)
 		if len(boxes):
-			boxes = boxes / scale
+			boxes = boxes*1.0 / scale
 		boxes = boxes.astype(int)
 		boxes = boxes.tolist()
 		return boxes
