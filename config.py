@@ -5,7 +5,7 @@ MAX_LONG_SIZE = 2500    # None
 IMG_SCALE = 1.5
 POST_DB = True
 UNCLIP_RATIO = 1.5
-D_MAX = 0.6
+D_MAX = 0.56
 DB_THRESH = 0.7
 
 RECOGNITION_MODEL_PATH = '/home/beidou/PycharmProjects/ACCRWAServer/models/recognize'  #./models/

@@ -217,10 +217,10 @@ if __name__ == '__main__':
 	# demo()
 
 	sess = AncientChinesePredictor()
-	img = cv2.imread('../116.jpg')
+	img = cv2.imread('../49.jpg')
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	boxes_list, text_list = sess.predict(img)
-	base64_img = sess.get_draw_img('../116.jpg', boxes_list, text_list)
+	base64_img = sess.get_draw_img('../49.jpg', boxes_list, text_list)
 	img2 = base64_to_cv2(base64_img)
 	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
 	cv2.imshow('img2', img2)
