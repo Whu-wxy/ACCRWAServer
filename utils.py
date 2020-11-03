@@ -147,12 +147,13 @@ def draw_bbox(img_path, result, color=(255, 0, 0), thickness=2, text_list = None
         # if text_list != None:
             # cv2.putText(img, text_list[i], tuple(point[0]), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 3)
 
-    img = Image.fromarray(img)
-    draw = ImageDraw.Draw(img)
-    for i, point in enumerate(result):
-        point = point.astype(int)
-        draw.text(tuple(point[0]), text_list[i], font=font, fill=(0, 0, 255))
-    img = np.array(img)
+    if len(result) == len(text_list):
+        img = Image.fromarray(img)
+        draw = ImageDraw.Draw(img)
+        for i, point in enumerate(result):
+            point = point.astype(int)
+            draw.text(tuple(point[0]), text_list[i], font=font, fill=(0, 0, 255))
+        img = np.array(img)
     return img
 
 def save_boxes(save_path, boxes, text_list=None):

@@ -269,7 +269,7 @@ class Recognize_Predictor_batch(Predictor):
 			start = timeit.default_timer()
 			with tf.Session() as session:
 				saver = tf_saver.Saver(variables_to_restore)
-				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
+				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_502', 'model.ckpt-100000'))
 				results = []
 				lo = 0
 				while lo != len(img_list_temp):
