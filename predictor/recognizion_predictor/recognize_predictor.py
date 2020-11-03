@@ -247,6 +247,10 @@ class Recognize_Predictor_batch(Predictor):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
 		# try:
 			n = len(img_list)
+			# for im in img_list:
+			# 	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
+			# 	cv2.imshow('img2', im)
+			# 	cv2.waitKey()
 
 			tf.reset_default_graph()
 
@@ -256,10 +260,8 @@ class Recognize_Predictor_batch(Predictor):
 		#inception_v4 resnet_v2_50
 
 			images = [image_preprocessing_fn(images_holder[i], RECOG_IMG_SHAPE, RECOG_IMG_SHAPE) for i in range(n)]
-			print('3')
 			eval_ops, _ = network_fn(images)
 
-			print('4')
 			variables_to_restore = slim.get_variables_to_restore()
 
 			img_list_temp = []

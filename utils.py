@@ -134,7 +134,7 @@ def draw_bbox(img_path, result, color=(255, 0, 0), thickness=2, text_list = None
         # img_path = cv2.cvtColor(img_path, cv2.COLOR_BGR2RGB)
     img = img.copy()
     scale = max(img.shape[0], img.shape[1]) / 240.0
-    font = ImageFont.truetype(FONT_PATH, int(15))
+    font = ImageFont.truetype(FONT_PATH, int(20))
     for i, point in enumerate(result):
         point = point.astype(int)
         if len(point) == 4:
