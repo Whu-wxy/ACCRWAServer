@@ -245,23 +245,26 @@ class Recognize_Predictor_batch(Predictor):
 
 	def predict(self, img_list):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
-		try:
+		# try:
 			n = len(img_list)
 
 			tf.reset_default_graph()
-			# tf.get_variable_scope().reuse_variables()
 
 			image_preprocessing_fn = get_tf_preprocess_image()
 			images_holder = [tf.placeholder(tf.uint8, shape=(None, None, 3)) for i in range(n)]
 			network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
-			images = [image_preprocessing_fn(images_holder[i], 224, 224) for i in range(n)]
-			# with tf.variable_scope("a", reuse=True):
+		#inception_v4 resnet_v2_50
+
+			images = [image_preprocessing_fn(images_holder[i], RECOG_IMG_SHAPE, RECOG_IMG_SHAPE) for i in range(n)]
+			print('3')
 			eval_ops, _ = network_fn(images)
+
+			print('4')
 			variables_to_restore = slim.get_variables_to_restore()
 
 			img_list_temp = []
 			for img in img_list:
-				img = cv_preprocess_image(img, 224, 224)
+				img = cv_preprocess_image(img, RECOG_IMG_SHAPE, RECOG_IMG_SHAPE)
 				img = np.expand_dims(img, 0)
 				img_list_temp.append(img)
 			img_list_temp = np.concatenate(img_list_temp, axis=0)
@@ -269,7 +272,7 @@ class Recognize_Predictor_batch(Predictor):
 			start = timeit.default_timer()
 			with tf.Session() as session:
 				saver = tf_saver.Saver(variables_to_restore)
-				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_502', 'model.ckpt-100000'))
+				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
 				results = []
 				lo = 0
 				while lo != len(img_list_temp):
@@ -307,8 +310,8 @@ class Recognize_Predictor_batch(Predictor):
 			print('[recognize] model time: ', end-start)
 
 			return predictions, probabilities
-		except:
-			return [], []
+		# except:
+		# 	return [], []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字

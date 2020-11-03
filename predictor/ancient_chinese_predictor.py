@@ -95,7 +95,7 @@ def demo():
 
 
 
-# @Predictor.register('ancient-chinese')
+@Predictor.register('ancient-chinese')
 class AncientChinesePredictor(Predictor):
 	def __init__(self):
 		self.detector = Detection_Predictor()
@@ -195,7 +195,6 @@ class AncientChinesePredictor(Predictor):
 			json_data['lab_path'] = instance[1]
 			id = db_add_item(json_data)
 			#
-
 			if len(boxes_list) == 0:
 				return {"boxes": [], "image": "", "imgid": -1}
 
@@ -256,3 +255,5 @@ if __name__ == '__main__':
 	# result["image"] = "sdfsdfsd"
 	# result["imgid"] = -1
 	# print(result)
+
+	print('finished')

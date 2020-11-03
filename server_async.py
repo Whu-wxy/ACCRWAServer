@@ -132,8 +132,6 @@ def score():
     db_add_score(json_data)
     # {"imgid":23, "score":4.5}
 
-
-
     return jsonify({})
 
 

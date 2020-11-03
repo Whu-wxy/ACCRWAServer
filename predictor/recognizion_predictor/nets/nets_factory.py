@@ -23,7 +23,7 @@ import tensorflow as tf
 
 # from nets import alexnet
 # from nets import cifarnet
-# from nets import inception
+from predictor.recognizion_predictor.nets import inception_v4
 # from nets import lenet
 # from nets import mobilenet_v1
 # from nets import overfeat
@@ -37,6 +37,7 @@ networks_map = {
                 'resnet_v2_50': resnet_v2.resnet_v2_50,
                 'resnet_v2_101': resnet_v2.resnet_v2_101,
                 'resnet_v2_152': resnet_v2.resnet_v2_152,
+                'inception_v4': inception_v4
   
                }
 
@@ -69,9 +70,12 @@ def get_network_fn(name, num_classes, weight_decay=0.0, is_training=False):
   func = networks_map[name]
   @functools.wraps(func)
   def network_fn(images):
-    arg_scope = arg_scopes_map[name](weight_decay=weight_decay)
-    with slim.arg_scope(arg_scope):
-      return func(images, num_classes, is_training=is_training)
+    if name == 'inception_v4':
+        return func(images, num_classes, is_training=is_training)
+    else:
+        arg_scope = arg_scopes_map[name](weight_decay=weight_decay)
+        with slim.arg_scope(arg_scope):
+          return func(images, num_classes, is_training=is_training)
   if hasattr(func, 'default_image_size'):
     network_fn.default_image_size = func.default_image_size
 

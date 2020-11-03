@@ -14,7 +14,10 @@ DB_THRESH = 0.7
 CENTER_TH = 0.8
 FULL_TH = 0.8
 
+
 RECOGNITION_MODEL_PATH = '/home/beidou/PycharmProjects/ACCRWAServer/models/recognize'  #./models/
+RECOG_IMG_SHAPE = 224  #224
+
 
 DB_PATH = './Sqlite3/database.db'
 
