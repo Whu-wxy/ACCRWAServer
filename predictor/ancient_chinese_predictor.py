@@ -109,9 +109,17 @@ class AncientChinesePredictor(Predictor):
 	def _json_preprocessing(self, data):
 		return self.detector._json_preprocessing(data)
 
-	def predict(self, img):
+	def predict(self, img, gt_path=None):
 		try:
-			boxes_list = self.detector.predict(img)
+			boxes_list = []
+			if gt_path == None:
+				boxes_list = self.detector.predict(img)
+			else:
+				with open(gt_path, 'r') as f:
+					for line in f.readlines():
+						params = line.strip().strip('\ufeff').strip('\xef\xbb\xbf').split(',')
+						x1, y1, x2, y2, x3, y3, x4, y4 = list(map(float, params[:8]))
+						boxes_list.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
 
 			text_list = []
 			crop_img_list = []
@@ -217,24 +225,34 @@ if __name__ == '__main__':
 	# demo()
 
 	sess = AncientChinesePredictor()
-	img = cv2.imread('../49.jpg')
-	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-	boxes_list, text_list = sess.predict(img)
-	base64_img = sess.get_draw_img('../49.jpg', boxes_list, text_list)
-	img2 = base64_to_cv2(base64_img)
-	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
-	cv2.imshow('img2', img2)
-	cv2.waitKey()
-	# cv2.imwrite("../../save.jpg", img2)
 
-	result = {}
-	result_list = []
-	for box, text in zip(boxes_list, text_list):
-		result_dict = {}
-		result_dict["boxes"] = box
-		result_dict["text"] = text
-		result_list.append(result_dict)
-	result["result"] = result_list
-	result["image"] = "sdfsdfsd"
-	result["imgid"] = -1
-	print(result)
+	imgs = os.listdir('./img')
+	save_dir = './save'
+	if not os.path.exists(save_dir):
+		os.makedirs(save_dir)
+
+	for im in imgs:
+		path = os.path.join('./img', im)
+		gt_path = os.path.join('./gt', im.split('.')[0]+'.txt')
+		img = cv2.imread(path)
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+		boxes_list, text_list = sess.predict(img, gt_path)
+		base64_img = sess.get_draw_img(path, boxes_list, text_list)
+		img2 = base64_to_cv2(base64_img)
+		# cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
+		# cv2.imshow('img2', img2)
+		# cv2.waitKey()
+		cv2.imwrite(os.path.join(save_dir, im), img2)
+
+
+	# result = {}
+	# result_list = []
+	# for box, text in zip(boxes_list, text_list):
+	# 	result_dict = {}
+	# 	result_dict["boxes"] = box
+	# 	result_dict["text"] = text
+	# 	result_list.append(result_dict)
+	# result["result"] = result_list
+	# result["image"] = "sdfsdfsd"
+	# result["imgid"] = -1
+	# print(result)

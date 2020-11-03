@@ -140,7 +140,7 @@ class Detection_Predictor(Predictor):
 				end = timeit.default_timer()
 				print('[detection] decode time: ', end - start)
 
-				return boxes_list  # {"result": [[...], [...], [...]] }
+				return boxes_list  #  [[...], [...], [...]]
 			except:
 				return []
 		except:
@@ -179,7 +179,7 @@ class Detection_Predictor(Predictor):
 
 #{"result":[ [[290, 239], [360, 249], [356, 270], [287, 259]],
 # 				[[358, 250], [423, 164], [451, 186], [386, 271]]
-# 				]}
+# 				]   }
 
 if __name__ == '__main__':
 	demo()
