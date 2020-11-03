@@ -3,7 +3,7 @@ import os
 import numpy as np
 import cv2
 import timeit
-
+from config import *
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -45,7 +45,7 @@ def sigmoid(x):
     s = 1 / (1 + np.exp(-x))
     return s
 
-def decode(preds, scale, dmax=0.64, dmin=0.295, center_th=0.95, full_th=0.978):
+def decode(preds, scale, dmax=0.64, dmin=0.295, center_th=CENTER_TH, full_th=FULL_TH):
     """
     在输出上使用sigmoid 将值转换为置信度，并使用阈值来进行文字和背景的区分
     :param preds: 网络输出
