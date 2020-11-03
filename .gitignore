@@ -138,10 +138,8 @@ dmypy.json
 *.JPEG
 *.ttc
 *.zip
-<<<<<<< HEAD
-save.zip
-=======
->>>>>>> refs/remotes/origin/master
+*.key
+*.pem
 
 *.meta
 *.index
