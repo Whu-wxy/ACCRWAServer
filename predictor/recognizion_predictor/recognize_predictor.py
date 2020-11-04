@@ -245,7 +245,7 @@ class Recognize_Predictor_batch(Predictor):
 
 	def predict(self, img_list):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
-		# try:
+		try:
 			n = len(img_list)
 			# for im in img_list:
 			# 	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
@@ -312,8 +312,9 @@ class Recognize_Predictor_batch(Predictor):
 			print('[recognize] model time: ', end-start)
 
 			return predictions, probabilities
-		# except:
-		# 	return [], []
+		except:
+			print('error in recognize 1.')
+			return [], []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
@@ -337,8 +338,8 @@ class Recognize_Predictor_batch(Predictor):
 				return {"text": [], 'probs': []}
 
 			return {"text": text_list, 'probs': prob_list}
-
 		except:
+			print('error in recognize 2.')
 			return {"text": [], 'probs': []}
 
 

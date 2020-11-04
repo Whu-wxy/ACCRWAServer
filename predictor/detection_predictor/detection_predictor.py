@@ -142,8 +142,10 @@ class Detection_Predictor(Predictor):
 
 				return boxes_list  #  [[...], [...], [...]]
 			except:
+				print('error in detection 1.')
 				return []
 		except:
+			print('error in detection 2.')
 			return []
 
 	def get_draw_img(self, img_path, boxes_list):
@@ -175,6 +177,7 @@ class Detection_Predictor(Predictor):
 			return {"boxes": boxes_list, "image":base64_img, "imgid":-1}  # {"result": [[...], [...], [...]] }
 
 		except:
+			print('error in detection 3.')
 			return {"boxes":[], "image":""}
 
 #{"result":[ [[290, 239], [360, 249], [356, 270], [287, 259]],
