@@ -1,10 +1,10 @@
 PREDICTOR = 'ancient-chinese'    # detection  ancient-chinese  recognize recognize_batch  test
 PORT = 8009
 
-DETECTION_MODEL_PATH = './data/mobilenet.onnx'  #./models/mobilenet.onnx
+DETECTION_MODEL_PATH = './data/mobilenet_our.onnx'  #./models/mobilenet.onnx
 MAX_LONG_SIZE = 2500    # None
 IMG_SCALE = 1.5
-POST_DB = False
+POST_DB = True
 D_MAX = 0.56
 
 #DB
