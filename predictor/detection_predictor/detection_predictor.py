@@ -84,6 +84,7 @@ class Detection_Predictor(Predictor):
 		self.session = onnxruntime.InferenceSession(DETECTION_MODEL_PATH)
 
 	def _json_preprocessing(self, data):
+		print(type(data))
 
 		img_save_path, result_save_path = get_img_save_dir(os.path.join(SAVE_ROOT_PATH, 'detection'))
 
@@ -140,8 +141,10 @@ class Detection_Predictor(Predictor):
 
 				return boxes_list  #  [[...], [...], [...]]
 			except:
+				print('error in detection 1.')
 				return []
 		except:
+			print('error in detection 2.')
 			return []
 
 	def get_draw_img(self, img_path, boxes_list):
@@ -173,6 +176,7 @@ class Detection_Predictor(Predictor):
 			return {"boxes": boxes_list, "image":base64_img, "imgid":-1}  # {"result": [[...], [...], [...]] }
 
 		except:
+			print('error in detection 3.')
 			return {"boxes":[], "image":""}
 
 #{"result":[ [[290, 239], [360, 249], [356, 270], [287, 259]],

@@ -116,7 +116,7 @@ class DB_Decoder():
 			else:
 				continue
 			box = box.reshape(-1, 2)
-			_, sside = self.get_mini_boxes(box.reshape((-1, 1, 2)))
+			_, sside = self.get_mini_boxes(box.reshape((-1, 1, 2)), height, width)
 			if sside < self.min_size + 2:
 				continue
 
@@ -147,7 +147,7 @@ class DB_Decoder():
 				continue
 
 			box = self.unclip(points, unclip_ratio=self.unclip_ratio).reshape(-1, 1, 2)
-			box, sside = self.get_mini_boxes(box)
+			box, sside = self.get_mini_boxes(box, height, width)
 			if sside < self.min_size + 2:
 				continue
 
@@ -165,7 +165,7 @@ class DB_Decoder():
 		expanded = np.array(offset.Execute(distance))
 		return expanded
 
-	def get_mini_boxes(self, contour):
+	def get_mini_boxes(self, contour, height=None, width=None):
 		bounding_box = cv2.minAreaRect(contour)
 		points = sorted(list(cv2.boxPoints(bounding_box)), key=lambda x: x[0])
 
@@ -184,6 +184,15 @@ class DB_Decoder():
 			index_3 = 2
 
 		box = [points[index_1], points[index_2], points[index_3], points[index_4]]
+
+		if width != None:
+			for i, pt in enumerate(box):
+				pt[0] = 0 if pt[0]<0 else pt[0]
+				pt[1] = 0 if pt[1]<0 else pt[1]
+				pt[0] = width-1 if pt[0]>=width else pt[0]
+				pt[1] = height-1 if pt[1]>=height else pt[1]
+				box[i] = pt
+
 		return box, min(bounding_box[1])
 
 	def box_score_fast(self, bitmap, _box):

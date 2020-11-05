@@ -1,4 +1,8 @@
 # coding=UTF-8<code>
+import gevent
+from gevent import monkey   #多线程
+monkey.patch_all()
+
 from typing import List, Callable, TypeVar
 import argparse
 import json
@@ -8,22 +12,20 @@ import sys
 from flask import Flask, request, Response, jsonify, url_for
 from flask_cors import CORS
 import time
-from gevent import monkey   #多线程
+import numpy as np
+
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
-from utils import check_for_gpu, allowed_file
+from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes
 from celery import Celery
 from celery.app.task import Task
 from celery.app.control import Control
-from Sqlite3.sqlite import db_add_score
+from Sqlite3.sqlite import db_add_score, db_query_by_id
 from config import *
-
-monkey.patch_all()
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-predictor_name = PREDICTOR
 port = 8009
 
 class ServerError(Exception):
@@ -44,7 +46,7 @@ class ServerError(Exception):
 
 app = Flask(__name__)  # pylint: disable=invalid-name
 app.debug = False
-# app.ssl_context = ('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key')
+
 # 配置消息代理的路径
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 # 要存储 Celery 任务的状态或运行结果时就必须要配置
@@ -69,11 +71,11 @@ celery_app.conf.update(app.config)
 #任务过期时间，单位为s，默认为一
 celery_app.conf.CELERY_TASK_RESULT_EXPIRE = 1000
 #backen缓存结果的数目，默认5000
-celery_app.conf.CELERY_MAX_CACHED_RESULT = 500
+celery_app.conf.CELERY_MAX_CACHED_RESULT = 200
 
 control = Control(celery_app)
 
-predictor = Predictor.by_name(predictor_name)()
+predictor = Predictor.by_name(PREDICTOR)()
 
 @celery_app.task(bind=True)   #, ignore_result=True
 def celery_predict(self, json_data):
@@ -116,6 +118,27 @@ def taskstate(task_id):
     return jsonify(response)
 
 
+@app.route('/shareimg/<img_id>', methods=['GET'])
+def sharedimg(img_id):
+    try:
+        data = db_query_by_id(img_id)
+        img_path = data.get("IMG_PATH", '')
+        lab_path = data.get("LAB_PATH", '')
+        if len(data) == 0 or len(img_path) == 0:
+            response = {'image': ''}
+            return jsonify(response)
+        boxes_list, text_list = load_boxes(lab_path)
+        drawed_img = draw_bbox(img_path, np.array(boxes_list), text_list=text_list, font_size=20)
+        base64_img = cvImg_to_base64(img_path, drawed_img)
+    except:
+        print('shareimg error.')
+        base64_img = ""
+    finally:
+        response = {'image': base64_img}
+
+    return jsonify(response)
+
+
 #使正在等待的任务停止
 @app.route('/revoke/<task_id>', methods=['GET'])
 def taskrevoke(task_id):
@@ -126,6 +149,7 @@ def taskrevoke(task_id):
     return jsonify(response)
 
 
+#给识别结果打分
 @app.route('/score', methods=['POST'])
 def score():
     json_data = request.get_json()
@@ -137,7 +161,10 @@ def score():
 
 if __name__ == "__main__":
     CORS(app)
-    http_server = WSGIServer(('0.0.0.0', port), app, keyfile='./models/SSL/4695946_www.72qier.icu.key', certfile='./models/SSL/4695946_www.72qier.icu.pem')
-                             # ssl_context=('./models/SSL/4695946_www.72qier.icu.pem', './models/SSL/4695946_www.72qier.icu.key'))
-    print(f"Serving demo on port {port}")
+    if len(SSL_KEY) != 0:
+        http_server = WSGIServer(('0.0.0.0', PORT), app, keyfile=SSL_KEY, certfile=SSL_PEM)
+    else:
+        http_server = WSGIServer(('0.0.0.0', PORT), app)
+
+    print(f"{PREDICTOR} is running on port. {PORT}")
     http_server.serve_forever()

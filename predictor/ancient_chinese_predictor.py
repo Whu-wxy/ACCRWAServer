@@ -95,7 +95,7 @@ def demo():
 
 
 
-# @Predictor.register('ancient-chinese')
+@Predictor.register('ancient-chinese')
 class AncientChinesePredictor(Predictor):
 	def __init__(self):
 		self.detector = Detection_Predictor()
@@ -148,6 +148,7 @@ class AncientChinesePredictor(Predictor):
 				text_list.append(text)
 			return new_box_list, text_list
 		except:
+			print('error in ancient_chinese 1.')
 			return [], []
 
 
@@ -157,7 +158,11 @@ class AncientChinesePredictor(Predictor):
 
 			text_list = []
 			for box in boxes_list:
-				crop_img = get_rotate_crop_image(img, np.array(box).astype(np.float32))
+				try:
+					crop_img = get_rotate_crop_image(img, np.array(box).astype(np.float32))
+				except:
+					print('crop error')
+					continue
 				h, w = crop_img.shape[:2]
 				if min(h, w) < 10:
 					continue
@@ -215,6 +220,7 @@ class AncientChinesePredictor(Predictor):
 			result["imgid"] = id
 			return result
 		except:
+			print('error in ancient_chinese 2.')
 			return {"boxes": [], "image":"", "imgid": -1}
 
 

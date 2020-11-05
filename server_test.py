@@ -78,6 +78,20 @@ def long_test():
 		time.sleep(2)
 		data = post()
 
+def get_shareimg():
+	URL = 'https://www.72qier.icu:8009/shareimg/150'
+
+	req = requests.get(url=URL)
+
+	data = req.content.decode('utf-8')
+	print(data)
+	data = json.loads(data)
+
+	img = base64_to_cv2(data['image'])
+	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
+	cv2.imshow('final_img', img)
+	cv2.waitKey()
+
 
 if __name__ == '__main__':
 	# long_test()
@@ -89,6 +103,8 @@ if __name__ == '__main__':
 	# data3 = post()
 	# data4 = post()
 	#
+	# get_shareimg()
+
 	for i in range(30):
 		time.sleep(2)
 		res = status(data1['location'])

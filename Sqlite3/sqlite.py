@@ -1,17 +1,23 @@
 import sqlite3
 import json
 import time
+import  sys
+sys.path.append('../')
 from config import *
 import os
 
-#接受json输入
+#接受dict输入
 def db_add_item(post_data):
 	try:
 		conn = sqlite3.connect(DB_PATH)
 		print("Connect success")
 		cur = conn.cursor()
-		cur.execute("SELECT MAX(ID) FROM ACCRWA")
-		id = cur.fetchone()[0] + 1
+		try:
+			cur.execute("SELECT MAX(ID) FROM ACCRWA")
+			res = cur.fetchone()
+			id = res[0] + 1
+		except:
+			id = 1
 		name = post_data.get("username", 'None')
 		now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime());
 		lon = post_data.get("lon", 0)
@@ -24,7 +30,7 @@ def db_add_item(post_data):
 		cur.close()
 		conn.commit()
 		conn.close()
-		print('Execute success')
+		print('db_add_item success.')
 		return id
 	except:
 		print('db_add_item fail.')
@@ -39,7 +45,7 @@ def db_delete_item(id):
 		cur.close()
 		conn.commit()
 		conn.close()
-		print('Execute success')
+		print('db_delete_item success.')
 	except:
 		print('db_delete_item fail.')
 
@@ -54,25 +60,53 @@ def db_add_score(post_data):
 		cur.close()
 		conn.commit()
 		conn.close()
-		print('Execute success')
+		print('db_add_score success.')
 	except:
 		print('db_add_score fail.')
 
 
-'''def db_add_score(id,score):
-	conn = sqlite3.connect(DB_PATH)
-	print("Connect success")
-	cur = conn.cursor()
-	cur.execute("UPDATE ACCRWA set SCORE = ? where ID=?", (score,id),)
-	cur.close()
-	conn.commit()
-	conn.close()
-	print('Execute success')'''
+def db_query_by_id(id):
+	try:
+		data = {}
+		conn = sqlite3.connect(DB_PATH)
+		cur = conn.cursor()
+		cur.execute("SELECT * FROM ACCRWA WHERE ID = ?",(id,))
+		results = cur.fetchall()
+		for row in results:
+			data['ID'] = row[0]
+			data['NAME'] = row[1]
+			data['TIME'] = row[2]
+			data['LON'] = row[3]
+			data['LAT'] = row[4]
+			data['IMG_PATH'] = row[5]
+			data['LAB_PATH'] = row[6]
+			data['score'] = row[7]
+		cur.close()
+		conn.commit()
+		conn.close()
+		print("db_query_by_id success.")
+		return data
+	except:
+		print('db_query_by_id fail.')
+		return {}
+
+
+def db_delete_by_time(time):
+	try:
+		conn = sqlite3.connect(DB_PATH)
+		cur = conn.cursor()
+		cur.execute("delete from ACCRWA where TIME <?",(time,))
+		cur.close()
+		conn.commit()
+		conn.close()
+		print('db_delete_by_time success.')
+	except:
+		print('db_delete_by_time fail.')
 
 
 
-
-
+if __name__ == "__main__":
+	db_delete_by_time('2020-11-05 22:34:27')
 
 
 
