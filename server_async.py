@@ -120,7 +120,9 @@ def taskstate(task_id):
 
 @app.route('/shareimg/<img_id>', methods=['GET'])
 def sharedimg(img_id):
+    base64_img = ""
     try:
+        print('/shareimg/', img_id)
         data = db_query_by_id(img_id)
         img_path = data.get("IMG_PATH", '')
         lab_path = data.get("LAB_PATH", '')
