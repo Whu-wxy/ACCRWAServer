@@ -25,9 +25,6 @@ from config import *
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-
-port = 8009
-
 class ServerError(Exception):
     status_code = 400
 
