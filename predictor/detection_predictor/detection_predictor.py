@@ -84,6 +84,7 @@ class Detection_Predictor(Predictor):
 		self.session = onnxruntime.InferenceSession(DETECTION_MODEL_PATH)
 
 	def _json_preprocessing(self, data):
+		print(type(data))
 
 		img_save_path, result_save_path = get_img_save_dir(os.path.join(SAVE_ROOT_PATH, 'detection'))
 

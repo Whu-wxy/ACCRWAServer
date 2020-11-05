@@ -128,13 +128,13 @@ def sigmoid(x):
 
 from PIL import Image, ImageDraw, ImageFont
 
-def draw_bbox(img_path, result, color=(255, 0, 0), thickness=2, text_list = None):
+def draw_bbox(img_path, result, color=(0, 0, 255), thickness=2, text_list = None, font_size = 20):
     if isinstance(img_path, str):
         img = cv2.imread(img_path)
         # img_path = cv2.cvtColor(img_path, cv2.COLOR_BGR2RGB)
-    img = img.copy()
+    # img = img.copy()
     scale = max(img.shape[0], img.shape[1]) / 240.0
-    font = ImageFont.truetype(FONT_PATH, int(20))
+    font = ImageFont.truetype(FONT_PATH, int(font_size))
     for i, point in enumerate(result):
         point = point.astype(int)
         if len(point) == 4:
@@ -154,6 +154,8 @@ def draw_bbox(img_path, result, color=(255, 0, 0), thickness=2, text_list = None
             point = point.astype(int)
             draw.text(tuple(point[0]), text_list[i], font=font, fill=(0, 0, 255))
         img = np.array(img)
+    else:
+        print('box count is not equal to text count in ', img_path)
     return img
 
 def save_boxes(save_path, boxes, text_list=None):
@@ -174,6 +176,22 @@ def save_boxes(save_path, boxes, text_list=None):
     with open(save_path, 'w') as f:
         for line in lines:
             f.write(line)
+
+
+def load_boxes(lab_path):
+    if not os.path.exists(lab_path):
+        return [], []
+
+    boxes_list = []
+    text_list = []
+    with open(lab_path, 'r') as f:
+        for line in f.readlines():
+            params = line.strip().strip('\ufeff').strip('\xef\xbb\xbf').split(',')
+            text_list.append(params[-1].strip())
+            x1, y1, x2, y2, x3, y3, x4, y4 = list(map(float, params[:8]))
+            boxes_list.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
+    return  boxes_list, text_list
+
 
 
 def sorted_boxes(dt_boxes):

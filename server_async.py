@@ -12,14 +12,15 @@ import sys
 from flask import Flask, request, Response, jsonify, url_for
 from flask_cors import CORS
 import time
+import numpy as np
 
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
-from utils import check_for_gpu, allowed_file
+from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes
 from celery import Celery
 from celery.app.task import Task
 from celery.app.control import Control
-from Sqlite3.sqlite import db_add_score
+from Sqlite3.sqlite import db_add_score, db_query_by_id
 from config import *
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -117,6 +118,27 @@ def taskstate(task_id):
     return jsonify(response)
 
 
+@app.route('/shareimg/<img_id>', methods=['GET'])
+def sharedimg(img_id):
+    try:
+        data = db_query_by_id(img_id)
+        img_path = data.get("IMG_PATH", '')
+        lab_path = data.get("LAB_PATH", '')
+        if len(data) == 0 or len(img_path) == 0:
+            response = {'image': ''}
+            return jsonify(response)
+        boxes_list, text_list = load_boxes(lab_path)
+        drawed_img = draw_bbox(img_path, np.array(boxes_list), text_list=text_list, font_size=20)
+        base64_img = cvImg_to_base64(img_path, drawed_img)
+    except:
+        print('shareimg error.')
+        base64_img = ""
+    finally:
+        response = {'image': base64_img}
+
+    return jsonify(response)
+
+
 #使正在等待的任务停止
 @app.route('/revoke/<task_id>', methods=['GET'])
 def taskrevoke(task_id):
@@ -127,6 +149,7 @@ def taskrevoke(task_id):
     return jsonify(response)
 
 
+#给识别结果打分
 @app.route('/score', methods=['POST'])
 def score():
     json_data = request.get_json()
