@@ -12,8 +12,12 @@ def db_add_item(post_data):
 		conn = sqlite3.connect(DB_PATH)
 		print("Connect success")
 		cur = conn.cursor()
-		cur.execute("SELECT MAX(ID) FROM ACCRWA")
-		id = cur.fetchone()[0] + 1
+		try:
+			cur.execute("SELECT MAX(ID) FROM ACCRWA")
+			res = cur.fetchone()
+			id = res[0] + 1
+		except:
+			id = 1
 		name = post_data.get("username", 'None')
 		now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime());
 		lon = post_data.get("lon", 0)
