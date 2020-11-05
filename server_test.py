@@ -21,18 +21,19 @@ def post():
 	URL = 'http://127.0.0.1:8009/predict'
 	# URL = 'http://119.3.124.157:8009/predict'
 	URL = 'https://www.72qier.icu:8009/predict'
+	URL = 'http://121.37.141.237:8009/predict'
 
 
 	post_data = {
 		"username": "12345667890",
 		"lon": 131,
 		"lat": 32,
-		'imgname':'test3.jpg',
+		'imgname':'test4.jpg',
 		# 'img_path':'../../sdfs',
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './test3.jpg'
+	img_path = './test4.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -60,6 +61,8 @@ def status(url):
 	URL = 'http://127.0.0.1:8009' +url
 	# URL = 'http://119.3.124.157:8009' +url
 	URL = 'https://www.72qier.icu:8009' +url
+	URL = 'http://121.37.141.237:8009' +url
+
 
 	req = requests.get(url=URL)
 
@@ -87,7 +90,7 @@ if __name__ == '__main__':
 	# data4 = post()
 	#
 	for i in range(30):
-		time.sleep(1)
+		time.sleep(2)
 		res = status(data1['location'])
 		if res['state'] == 'SUCCESS':
 			break

@@ -125,7 +125,11 @@ class AncientChinesePredictor(Predictor):
 			crop_img_list = []
 			new_box_list = []
 			for box in boxes_list:
-				crop_img = get_rotate_crop_image(img, np.array(box).astype(np.float32))
+				try:
+					crop_img = get_rotate_crop_image(img, np.array(box).astype(np.float32))
+				except:
+					print('crop error')
+					continue
 				h, w = crop_img.shape[:2]
 				if min(h, w) < 10:
 					continue
@@ -196,7 +200,7 @@ class AncientChinesePredictor(Predictor):
 			id = db_add_item(json_data)
 			#
 			if len(boxes_list) == 0:
-				return {"boxes": [], "image": "", "imgid": -1}
+				return {"boxes": [], "image": cvImg_to_base64(instance[0], img), "imgid": -1}
 
 			base64_img = self.get_draw_img(instance[0], boxes_list, text_list)
 			result = {}

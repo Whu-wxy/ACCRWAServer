@@ -96,8 +96,6 @@ class Detection_Predictor(Predictor):
 				file_path, new_file_name = save_img(image, file_name, img_save_path)
 				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
 				print('file saved to %s' % file_path)
-
-				#data['img_path'] = file_path
 			else:
 				return []
 		except:
