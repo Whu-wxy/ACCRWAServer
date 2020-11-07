@@ -133,8 +133,13 @@ class Detection_Predictor(Predictor):
 					db = DB_Decoder(unclip_ratio=UNCLIP_RATIO, box_thresh=DB_THRESH)
 					boxes_list = db.predict(result[0], scale, dmax=D_MAX)
 				else:
-					from predictor.detection_predictor.dist import decode as dist_decode
-					boxes_list = dist_decode(result[0], scale, dmax=D_MAX)
+					try:
+						from predictor.detection_predictor.dist import decode as dist_decode
+						boxes_list = dist_decode(result[0], scale, dmax=D_MAX)
+					except:
+						print('dist decode error.')
+						db = DB_Decoder(unclip_ratio=UNCLIP_RATIO, box_thresh=DB_THRESH)
+						boxes_list = db.predict(result[0], scale, dmax=D_MAX)
 
 				end = timeit.default_timer()
 				print('[detection] decode time: ', end - start)
@@ -170,6 +175,7 @@ class Detection_Predictor(Predictor):
 			#
 
 			if len(boxes_list) == 0:
+				print('no text has been detected.')
 				return {"boxes": [], "image":""}
 
 			base64_img = self.get_draw_img(instance[0], boxes_list)
