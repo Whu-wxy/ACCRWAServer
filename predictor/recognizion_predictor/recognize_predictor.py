@@ -62,19 +62,6 @@ def get_tf_preprocess_image():
 	return foo
 
 
-# image_preprocessing_fn = get_tf_preprocess_image()
-# image_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
-# network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
-# images = [image_preprocessing_fn(image_holder, 224, 224)]
-# eval_ops, _ = network_fn(images)
-# variables_to_restore = slim.get_variables_to_restore()
-#
-# session = tf.Session()
-#
-# saver = tf_saver.Saver(variables_to_restore)
-# saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
-
-
 @Predictor.register('recognize')
 class Recognize_Predictor(Predictor):
 
@@ -93,16 +80,16 @@ class Recognize_Predictor(Predictor):
 
 			image_preprocessing_fn = get_tf_preprocess_image()
 			self.image_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
-			network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
+			network_fn = nets_factory.get_network_fn(RECOGNITION_MODEL_NAME, 3755, weight_decay=0.0, is_training=False)
 			images = [image_preprocessing_fn(self.image_holder, 224, 224)]
 			eval_ops, _ = network_fn(images)
 			self.ops = eval_ops
 
 			variables_to_restore = slim.get_variables_to_restore()
 			saver = tf_saver.Saver(variables_to_restore)
-			saver.restore(self.session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
+			saver.restore(self.session, RECOGNITION_MODEL_PATH)
 
-		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
+		with open(RECOGNITION_DICT_PATH) as f:
 			lines = f.read()
 			self.cates = json.loads(lines.strip())
 
@@ -135,16 +122,6 @@ class Recognize_Predictor(Predictor):
 			img = cv_preprocess_image(img, 224, 224)
 			# try:
 			start = timeit.default_timer()
-
-			# with tf.Session() as session:
-			# 	variables_to_restore = slim.get_variables_to_restore()
-			# 	saver = tf_saver.Saver(variables_to_restore)
-			# 	saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
-			# 	logits = session.run(self.ops, feed_dict={self.image_holder: img})
-
-			# global session, eval_ops, image_holder
-			# logits = session.run(eval_ops, feed_dict={image_holder: img})
-
 
 			logits = self.session.run(self.ops, feed_dict={self.image_holder: img})
 
@@ -216,7 +193,7 @@ class Recognize_Predictor_batch(Predictor):
 		self._model_init()
 
 	def _model_init(self):
-		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
+		with open(RECOGNITION_DICT_PATH) as f:
 			lines = f.read()
 			self.cates = json.loads(lines.strip())
 
@@ -245,7 +222,7 @@ class Recognize_Predictor_batch(Predictor):
 
 	def predict(self, img_list):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
-		try:
+		# try:
 			n = len(img_list)
 			# for im in img_list:
 			# 	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
@@ -256,7 +233,7 @@ class Recognize_Predictor_batch(Predictor):
 
 			image_preprocessing_fn = get_tf_preprocess_image()
 			images_holder = [tf.placeholder(tf.uint8, shape=(None, None, 3)) for i in range(n)]
-			network_fn = nets_factory.get_network_fn('resnet_v2_50', 3755, weight_decay=0.0, is_training=False)
+			network_fn = nets_factory.get_network_fn(RECOGNITION_MODEL_NAME, 3755, weight_decay=0.0, is_training=False)
 		#inception_v4 resnet_v2_50
 
 			images = [image_preprocessing_fn(images_holder[i], RECOG_IMG_SHAPE, RECOG_IMG_SHAPE) for i in range(n)]
@@ -274,7 +251,7 @@ class Recognize_Predictor_batch(Predictor):
 			start = timeit.default_timer()
 			with tf.Session() as session:
 				saver = tf_saver.Saver(variables_to_restore)
-				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'train_logs_resnet_v2_50', 'model.ckpt-100000'))
+				saver.restore(session, RECOGNITION_MODEL_PATH)
 				results = []
 				lo = 0
 				while lo != len(img_list_temp):
@@ -312,9 +289,9 @@ class Recognize_Predictor_batch(Predictor):
 			print('[recognize] model time: ', end-start)
 
 			return predictions, probabilities
-		except:
-			print('error in recognize 1.')
-			return [], []
+		# except:
+		# 	print('error in recognize 1.')
+		# 	return [], []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
@@ -346,14 +323,14 @@ class Recognize_Predictor_batch(Predictor):
 #{"text":[ ["A", 0.8], ["B", 0.2] ]}
 
 if __name__ == '__main__':
-	sess = Recognize_Predictor()
+	sess = Recognize_Predictor_batch()
 	img = cv2.imread('../../0.jpg')
-	res = sess.predict(img)
+	res = sess.predict([img])
 	print(res)
-	res = sess.predict(img)
-	print(res)
-	res = sess.predict(img)
-	print(res)
+	# res = sess.predict(img)
+	# print(res)
+	# res = sess.predict(img)
+	# print(res)
 
 	# img_save_path, result_save_path = get_img_save_dir('../../../')
 	# print(img_save_path)
