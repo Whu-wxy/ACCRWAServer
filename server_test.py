@@ -20,20 +20,20 @@ def base64_to_cv2(b64str):
 def post():
 	URL = 'http://127.0.0.1:8009/predict'
 	# URL = 'http://119.3.124.157:8009/predict'
-	URL = 'https://www.72qier.icu:8009/predict'
-	URL = 'http://121.37.141.237:8009/predict'
+	# URL = 'https://www.72qier.icu:8009/predict'
+	# URL = 'http://121.37.141.237:8009/predict'
 
 
 	post_data = {
 		"username": "12345667890",
 		"lon": 131,
 		"lat": 32,
-		'imgname':'test4.jpg',
+		'imgname':'49.jpg',
 		# 'img_path':'../../sdfs',
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './test4.jpg'
+	img_path = './49.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -60,8 +60,8 @@ def post():
 def status(url):
 	URL = 'http://127.0.0.1:8009' +url
 	# URL = 'http://119.3.124.157:8009' +url
-	URL = 'https://www.72qier.icu:8009' +url
-	URL = 'http://121.37.141.237:8009' +url
+	# URL = 'https://www.72qier.icu:8009' +url
+	# URL = 'http://121.37.141.237:8009' +url
 
 
 	req = requests.get(url=URL)
