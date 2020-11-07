@@ -17,8 +17,7 @@ FULL_TH = 0.8
 
 
 RECOGNITION_MODEL_NAME = 'inception_v4'  # resnet_v2_50
-RECOGNITION_MODEL_PATH = '../../data/recognize/train_logs_resnet_v2_502/model.ckpt-100000'  #./models/
-RECOGNITION_DICT_PATH = '../../data/recognize/cates_incep.json'
+RECOGNITION_MODEL_PATH = '../../data/recognize/train_logs_resnet_v2_502/'  #./models/
 
 
 RECOG_IMG_SHAPE = 235  #224

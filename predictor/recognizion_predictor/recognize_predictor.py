@@ -87,9 +87,9 @@ class Recognize_Predictor(Predictor):
 
 			variables_to_restore = slim.get_variables_to_restore()
 			saver = tf_saver.Saver(variables_to_restore)
-			saver.restore(self.session, RECOGNITION_MODEL_PATH)
+			saver.restore(self.session, os.path.join(RECOGNITION_MODEL_PATH, 'model.ckpt-100000'))
 
-		with open(RECOGNITION_DICT_PATH) as f:
+		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
 			lines = f.read()
 			self.cates = json.loads(lines.strip())
 
@@ -193,7 +193,7 @@ class Recognize_Predictor_batch(Predictor):
 		self._model_init()
 
 	def _model_init(self):
-		with open(RECOGNITION_DICT_PATH) as f:
+		with open(os.path.join(RECOGNITION_MODEL_PATH, 'cates.json')) as f:
 			lines = f.read()
 			self.cates = json.loads(lines.strip())
 
@@ -222,7 +222,7 @@ class Recognize_Predictor_batch(Predictor):
 
 	def predict(self, img_list):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
-		# try:
+		try:
 			n = len(img_list)
 			# for im in img_list:
 			# 	cv2.namedWindow("img2", cv2.WINDOW_NORMAL)
@@ -251,7 +251,7 @@ class Recognize_Predictor_batch(Predictor):
 			start = timeit.default_timer()
 			with tf.Session() as session:
 				saver = tf_saver.Saver(variables_to_restore)
-				saver.restore(session, RECOGNITION_MODEL_PATH)
+				saver.restore(session, os.path.join(RECOGNITION_MODEL_PATH, 'model.ckpt-100000'))
 				results = []
 				lo = 0
 				while lo != len(img_list_temp):
@@ -289,9 +289,9 @@ class Recognize_Predictor_batch(Predictor):
 			print('[recognize] model time: ', end-start)
 
 			return predictions, probabilities
-		# except:
-		# 	print('error in recognize 1.')
-		# 	return [], []
+		except:
+			print('error in recognize 1.')
+			return [], []
 
 	def _predict_instance(self, instance):
 		#在这里得到结果之后，对图片进行重命名，为空的字符串则不改名字
