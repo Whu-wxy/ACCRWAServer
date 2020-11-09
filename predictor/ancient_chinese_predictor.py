@@ -245,7 +245,7 @@ if __name__ == '__main__':
 		gt_path = os.path.join('./gt', im.split('.')[0]+'.txt')
 		img = cv2.imread(path)
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-		boxes_list, text_list = sess.predict(img, gt_path)
+		boxes_list, text_list = sess.predict(img, None)
 		base64_img = sess.get_draw_img(path, boxes_list, text_list)
 		img2 = base64_to_cv2(base64_img)
 		# cv2.namedWindow("img2", cv2.WINDOW_NORMAL)

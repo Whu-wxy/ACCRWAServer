@@ -80,8 +80,8 @@ class Recognize_Predictor(Predictor):
 
 			image_preprocessing_fn = get_tf_preprocess_image()
 			self.image_holder = tf.placeholder(tf.uint8, shape=(None, None, 3))
-			network_fn = nets_factory.get_network_fn(RECOGNITION_MODEL_NAME, 3755, weight_decay=0.0, is_training=False)
-			images = [image_preprocessing_fn(self.image_holder, 224, 224)]
+			network_fn = nets_factory.get_network_fn(RECOGNITION_MODEL_NAME, DICT_SIZE, weight_decay=0.0, is_training=False)
+			images = [image_preprocessing_fn(self.image_holder, RECOG_IMG_SHAPE, RECOG_IMG_SHAPE)]
 			eval_ops, _ = network_fn(images)
 			self.ops = eval_ops
 
@@ -119,18 +119,18 @@ class Recognize_Predictor(Predictor):
 	def predict(self, img):
 		#这里改成直接传图片比较好，方便在ancient_chine里调用
 		try:
-			img = cv_preprocess_image(img, 224, 224)
+			img = cv_preprocess_image(img, RECOG_IMG_SHAPE, RECOG_IMG_SHAPE)
 			# try:
 			start = timeit.default_timer()
 
 			logits = self.session.run(self.ops, feed_dict={self.image_holder: img})
 
-			assert 3755 == logits.shape[1]
-			logits = logits[:, :3755]
+			assert DICT_SIZE == logits.shape[1]
+			logits = logits[:, :DICT_SIZE]
 			explogits = np.exp(np.minimum(logits, 70))
 			expsums = np.sum(explogits, axis=1)
 			expsums.shape = (logits.shape[0], 1)
-			expsums = np.repeat(expsums, 3755, axis=1)
+			expsums = np.repeat(expsums, DICT_SIZE, axis=1)
 			probs = explogits / expsums
 			argsorts = np.argsort(-logits, axis=1)
 
@@ -210,8 +210,6 @@ class Recognize_Predictor_batch(Predictor):
 				file_path, new_file_name = save_img(image, file_name, img_save_path)
 				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
 				print('file saved to %s' % file_path)
-
-				#data['img_path'] = file_path
 			else:
 				return []
 		except:
@@ -233,8 +231,7 @@ class Recognize_Predictor_batch(Predictor):
 
 			image_preprocessing_fn = get_tf_preprocess_image()
 			images_holder = [tf.placeholder(tf.uint8, shape=(None, None, 3)) for i in range(n)]
-			network_fn = nets_factory.get_network_fn(RECOGNITION_MODEL_NAME, 3755, weight_decay=0.0, is_training=False)
-		#inception_v4 resnet_v2_50
+			network_fn = nets_factory.get_network_fn(RECOGNITION_MODEL_NAME, DICT_SIZE, weight_decay=0.0, is_training=False)
 
 			images = [image_preprocessing_fn(images_holder[i], RECOG_IMG_SHAPE, RECOG_IMG_SHAPE) for i in range(n)]
 			eval_ops, _ = network_fn(images)
@@ -262,12 +259,12 @@ class Recognize_Predictor_batch(Predictor):
 					lo = hi
 				logits = np.concatenate(results, axis=0)
 
-			assert 3755 == logits.shape[1]
-			logits = logits[:, :3755]
+			assert DICT_SIZE == logits.shape[1]
+			logits = logits[:, :DICT_SIZE]
 			explogits = np.exp(np.minimum(logits, 70))
 			expsums = np.sum(explogits, axis=1)
 			expsums.shape = (logits.shape[0], 1)
-			expsums = np.repeat(expsums, 3755, axis=1)
+			expsums = np.repeat(expsums, DICT_SIZE, axis=1)
 			probs = explogits / expsums
 			argsorts = np.argsort(-logits, axis=1)
 
@@ -282,8 +279,10 @@ class Recognize_Predictor_batch(Predictor):
 				probabilities.append(prob)
 				lo += 1
 
-			# for i in range(5):
-			# 	print('predictions', predictions[0][i], probabilities[0][i])
+			# for j in range(len(predictions)):
+			# 	for i in range(5):
+			# 		print('predictions', predictions[j][i], probabilities[j][i])
+			# 	print('______________________________________')
 
 			end = timeit.default_timer()
 			print('[recognize] model time: ', end-start)
