@@ -17,7 +17,7 @@ FULL_TH = 0.8
 
 
 RECOGNITION_MODEL_NAME = 'inception_v4'  # resnet_v2_50
-RECOGNITION_MODEL_PATH = '../data/recognize/inception_cyy/'  #./models/
+RECOGNITION_MODEL_PATH = './data/recognize/inception_cyy/'  #./models/
 DICT_SIZE = 3756
 
 RECOG_IMG_SHAPE = 235  #224
