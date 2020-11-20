@@ -16,6 +16,7 @@ import numpy as np
 
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
+from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor_batch
 from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes
 from celery import Celery
 from celery.app.task import Task
@@ -83,6 +84,15 @@ def celery_predict(self, json_data):
     result['result'] = prediction
     return result
 
+@celery_app.task(bind=True)   #, ignore_result=True
+def celery_predict_single_char(self, json_data):
+    self.update_state(state='PROGRESS')
+    recog_predictor = Recognize_Predictor_batch()
+    prediction = recog_predictor.predict_json(json_data)
+    result = {}
+    result['result'] = prediction
+    return result
+
 
 @app.errorhandler(ServerError)
 def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unused-variable
@@ -97,6 +107,15 @@ def predict() -> Response:  # pylint: disable=unused-variable
     task = celery_predict.delay(json_data)
     print('task id: ', task.id)
     return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
+
+@app.route('/recognize', methods=['POST'])
+def predict_single_char() -> Response:  # pylint: disable=unused-variable
+    """make a prediction using the specified model and return the results"""
+    json_data = request.get_json()
+    task = celery_predict_single_char.delay(json_data)
+    print('task id: ', task.id)
+    return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
+
 
 @app.route('/status/<task_id>', methods=['GET'])
 def taskstate(task_id):

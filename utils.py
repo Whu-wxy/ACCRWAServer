@@ -105,7 +105,7 @@ def get_extention(image_name):
 
 
 
-def save_img(image_data, image_name, img_save_path):
+def save_img(image_data, image_name, img_save_path, bRecog=False):
     time_now = datetime.datetime.now()
     if not os.path.exists(img_save_path):
         raise ValueError("img_save_path not exist!")
@@ -115,7 +115,10 @@ def save_img(image_data, image_name, img_save_path):
     if len(file_names) == 0:
         max_val = 0
     else:
-        max_val = max([int(name.split('.')[0]) for name in file_names])
+        if not bRecog:
+            max_val = max([int(name.split('.')[0]) for name in file_names])
+        else:
+            max_val = max([int(name.split('.')[0].split('_')[0]) for name in file_names])
     image_name = str(max_val + 1) + '.' + get_extention(image_name)
     cv2.imwrite(os.path.join(img_save_path, image_name), image_data)
 

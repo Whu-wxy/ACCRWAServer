@@ -15,6 +15,8 @@ import cv2
 from predictor.recognizion_predictor.nets import nets_factory
 import json
 from tensorflow.python.training import saver as tf_saver
+from Sqlite3.sqlite import db_add_item
+
 
 slim = tf.contrib.slim
 
@@ -207,15 +209,14 @@ class Recognize_Predictor_batch(Predictor):
 			file_name = secure_filename(data['imgname'])
 			image = base64_to_cv2(data['image'])
 			if allowed_file(file_name):
-				file_path, new_file_name = save_img(image, file_name, img_save_path)
-				label_path = os.path.join(result_save_path, new_file_name.split('.')[0] + '.txt')
+				file_path, new_file_name = save_img(image, file_name, img_save_path, bRecog=True)
 				print('file saved to %s' % file_path)
 			else:
 				return []
 		except:
 			print('upload_file is empty!')
 		finally:
-			return [file_path, label_path, data]
+			return [file_path, data]
 
 
 	def predict(self, img_list):
@@ -303,17 +304,25 @@ class Recognize_Predictor_batch(Predictor):
 				print('image is not exist!')
 				return {"text": [], 'probs': []}
 			text_list, prob_list = self.predict([img])
+			new_img_path = instance[0]
 			if len(text_list) != 0:
-				os.rename(instance[0], text_list[0][0])
+				dir = os.path.dirname(instance[0])
+				filename = os.path.basename(instance[0])
+				filename = filename.rsplit('.', 1)[0]+'_'+text_list[0][0]+'.'+filename.rsplit('.', 1)[-1]
+				new_img_path = os.path.join(dir, filename)
+				os.rename(instance[0], new_img_path)
 
 			# add to DB
-			json_data = instance[2]
+			json_data = instance[1]
+			json_data['img_path'] = new_img_path
+			json_data['lab_path'] = ''
+			_ = db_add_item(json_data)
 			#
 
 			if len(text_list) == 0:
 				return {"text": [], 'probs': []}
 
-			return {"text": text_list, 'probs': prob_list}
+			return {"text": text_list[0], 'probs': prob_list[0]}
 		except:
 			print('error in recognize 2.')
 			return {"text": [], 'probs': []}
