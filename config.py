@@ -24,6 +24,7 @@ RECOG_IMG_SHAPE = 235  #224
 
 
 DB_PATH = './data/database.db'
+WORD_DB_PATH = './data/word.db'
 
 SAVE_ROOT_PATH = '../users_data'
 

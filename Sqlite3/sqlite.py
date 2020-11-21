@@ -91,6 +91,33 @@ def db_query_by_id(id):
 		return {}
 
 
+#按姓名查询，用于小程序查询同一用户所有信息
+def db_query_by_name(name):
+	try:
+		data = {}
+		conn = sqlite3.connect(DB_PATH)
+		cur = conn.cursor()
+		cur.execute("SELECT * FROM ACCRWA WHERE NAME = ?",(name,))
+		results = cur.fetchall()
+		for row in results:
+			data['ID'] = row[0]
+			data['NAME'] = row[1]
+			data['TIME'] = row[2]
+			data['LON'] = row[3]
+			data['LAT'] = row[4]
+			data['IMG_PATH'] = row[5]
+			data['LAB_PATH'] = row[6]
+			data['score'] = row[7]
+		json_data = json.dumps(data)
+		cur.close()
+		conn.commit()
+		conn.close()
+		print("db_query_by_name success.")
+		return data
+	except:
+		print('db_query_by_name fail.')
+		return {}
+
 def db_delete_by_time(time):
 	try:
 		conn = sqlite3.connect(DB_PATH)
@@ -104,6 +131,44 @@ def db_delete_by_time(time):
 		print('db_delete_by_time fail.')
 
 
+###########################################################################
+
+#添加数据，接受json输入，用于文本数据库添加数据
+def word_add_item(post_data):
+    conn = sqlite3.connect(WORD_DB_PATH)
+    cur = conn.cursor()
+    word = post_data.get("word", 'None')
+    oldword = post_data.get("oldword", 'Error')
+    strokes = post_data.get("strokes", 0)
+    pinyin = post_data.get("pinyin", 'Error')
+    radicals = post_data.get("radicals", 'Error')
+    explanation = post_data.get("explanation", 'Error')
+    cur.execute("INSERT OR IGNORE INTO WORDTABLE (WORD,OLDWORD,STROKES,PINYIN,RADICALS,EXPLANATION) \
+      VALUES (?, ?, ?, ?, ?, ?)",(word,oldword,strokes,pinyin,radicals,explanation))
+    cur.close()
+    conn.commit()
+    conn.close()
+
+
+
+##按字查询，用于查找文本数据库中相应的汉字信息
+def word_name_query_item(word):
+    data = {}
+    conn = sqlite3.connect(WORD_DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM WORDTABLE WHERE WORD = ?",(word,))
+    results = cur.fetchall()
+    for row in results:
+        data['WORD'] = row[0]
+        data['OLDWORD'] = row[1]
+        data['STROKES'] = row[2]
+        data['PINYIN'] = row[3]
+        data['RADICALS'] = row[4]
+        data['EXPLANATION'] = row[5]
+    cur.close()
+    conn.commit()
+    conn.close()
+    print("SELECT SUCCESS")
 
 if __name__ == "__main__":
 	db_delete_by_time('2020-11-05 22:34:27')
