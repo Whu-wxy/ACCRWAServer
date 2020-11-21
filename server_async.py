@@ -173,8 +173,13 @@ def score():
     json_data = request.get_json()
     db_add_score(json_data)
     # {"imgid":23, "score":4.5}
-
     return jsonify({})
+
+#文字释义
+@app.route('/explainword/<word>', methods=['GET'])
+def explainword(word):
+    pass
+
 
 
 if __name__ == "__main__":
