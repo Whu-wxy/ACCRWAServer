@@ -17,11 +17,11 @@ import numpy as np
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
 from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor_batch
-from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes
+from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes, cv2_to_base64
 from celery import Celery
 from celery.app.task import Task
 from celery.app.control import Control
-from Sqlite3.sqlite import db_add_score, db_query_by_id
+from Sqlite3.sqlite import db_add_score, db_query_by_id, word_name_query_item
 from config import *
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -145,9 +145,12 @@ def sharedimg(img_id):
         if len(data) == 0 or len(img_path) == 0:
             response = {'image': ''}
             return jsonify(response)
-        boxes_list, text_list = load_boxes(lab_path)
-        drawed_img = draw_bbox(img_path, np.array(boxes_list), text_list=text_list, font_size=20)
-        base64_img = cvImg_to_base64(img_path, drawed_img)
+        if len(lab_path) != 0:
+            boxes_list, text_list = load_boxes(lab_path)
+            drawed_img = draw_bbox(img_path, np.array(boxes_list), text_list=text_list, font_size=20)
+            base64_img = cvImg_to_base64(img_path, drawed_img)
+        else:
+            base64_img = cv2_to_base64(img_path)
     except:
         print('shareimg error.')
         base64_img = ""

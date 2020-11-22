@@ -302,7 +302,7 @@ class Recognize_Predictor_batch(Predictor):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"text": [], 'probs': []}
+				return {"text": [], 'probs': [], "imgid": -1}
 			text_list, prob_list = self.predict([img])
 			new_img_path = instance[0]
 			if len(text_list) != 0:
@@ -316,16 +316,16 @@ class Recognize_Predictor_batch(Predictor):
 			json_data = instance[1]
 			json_data['img_path'] = new_img_path
 			json_data['lab_path'] = ''
-			_ = db_add_item(json_data)
+			id = db_add_item(json_data)
 			#
 
 			if len(text_list) == 0:
 				return {"text": [], 'probs': []}
 
-			return {"text": text_list[0], 'probs': prob_list[0]}
+			return {"text": text_list[0], 'probs': prob_list[0], "imgid": id}
 		except:
 			print('error in recognize 2.')
-			return {"text": [], 'probs': []}
+			return {"text": [], 'probs': [], "imgid": -1}
 
 
 #{"text":[ ["A", 0.8], ["B", 0.2] ]}
