@@ -181,7 +181,8 @@ def score():
 #文字释义
 @app.route('/explainword/<word>', methods=['GET'])
 def explainword(word):
-    pass
+    explain_dict = word_name_query_item(word)
+    return jsonify(explain_dict)
 
 
 

@@ -173,9 +173,10 @@ def word_name_query_item(word):
 		cur.close()
 		conn.commit()
 		conn.close()
-		print('word_add_item success.')
+		print('word_name_query_item success.')
+		return data
 	except:
-		print('word_add_item fail.')
+		print('word_name_query_item fail.')
 
 if __name__ == "__main__":
 	db_delete_by_time('2020-11-05 22:34:27')

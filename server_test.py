@@ -59,7 +59,7 @@ def post():
 def post_recog():
 	URL = 'http://127.0.0.1:8009/recognize'
 	# URL = 'http://119.3.124.157:8009/recognize'
-	# URL = 'https://www.72qier.icu:8009/recognize'
+	URL = 'https://www.72qier.icu:8009/recognize'
 	# URL = 'http://121.37.141.237:8009/recognize'
 
 	post_data = {
@@ -89,7 +89,7 @@ def post_recog():
 def status(url):
 	URL = 'http://127.0.0.1:8009' +url
 	# URL = 'http://119.3.124.157:8009' +url
-	# URL = 'https://www.72qier.icu:8009' +url
+	URL = 'https://www.72qier.icu:8009' +url
 	# URL = 'http://121.37.141.237:8009' +url
 
 
@@ -108,9 +108,9 @@ def long_test():
 		data = post()
 
 def get_shareimg():
-	URL = 'http://127.0.0.1:8009/shareimg/113'
+	# URL = 'http://127.0.0.1:8009/shareimg/113'
 
-	# URL = 'https://www.72qier.icu:8009/shareimg/113'
+	URL = 'https://www.72qier.icu:8009/shareimg/639'
 
 	req = requests.get(url=URL)
 
@@ -124,14 +124,32 @@ def get_shareimg():
 	cv2.waitKey()
 
 
+def get_explain():
+	word = '中'
+	# word = word.encode('utf-8')
+	# print(str(word))
+	URL = 'http://127.0.0.1:8009/explainword/' + word
+
+	# URL = 'https://www.72qier.icu:8009/explainword/' + word
+
+	req = requests.get(url=URL)
+
+	data = req.content.decode('utf-8')
+
+	data = json.loads(data)
+	print(data)
+
+
 if __name__ == '__main__':
 
 	# long_test()
 
+	get_explain()
+
 	# for i in range(10):
 	# 	data = post()
 	# data1 = post()
-	data2 = post_recog()
+	# data2 = post_recog()
 	# data2 = post()
 	# data3 = post()
 	# data4 = post()
