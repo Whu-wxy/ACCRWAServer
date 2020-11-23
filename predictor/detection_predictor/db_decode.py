@@ -6,8 +6,11 @@ import pyclipper
 from shapely.geometry import Polygon
 
 def sigmoid(x):
-    s = 1 / (1 + np.exp(-x))
-    return s
+	if np.all(x>=0):
+		s = 1 / (1 + np.exp(-x))
+	else:
+		s = np.exp(x) / (1 + np.exp(x))
+	return s
 
 
 class DB_Decoder():

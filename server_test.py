@@ -28,12 +28,12 @@ def post():
 		"username": "12345667890",
 		"lon": 131,
 		"lat": 32,
-		'imgname':'test3.jpg',
+		'imgname':'test5.jpg',
 		# 'img_path':'../../sdfs',
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './test3.jpg'
+	img_path = './test5.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -130,7 +130,7 @@ def get_explain():
 	# print(str(word))
 	URL = 'http://127.0.0.1:8009/explainword/' + word
 
-	# URL = 'https://www.72qier.icu:8009/explainword/' + word
+	URL = 'https://www.72qier.icu:8009/explainword/' + word
 
 	req = requests.get(url=URL)
 
@@ -144,12 +144,12 @@ if __name__ == '__main__':
 
 	# long_test()
 
-	get_explain()
+	# get_explain()
 
 	# for i in range(10):
 	# 	data = post()
-	# data1 = post()
-	# data2 = post_recog()
+	data1 = post()
+	data2 = post_recog()
 	# data2 = post()
 	# data3 = post()
 	# data4 = post()
