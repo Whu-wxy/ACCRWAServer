@@ -236,8 +236,8 @@ def get_rotate_crop_image(img, points):
     M = cv2.getPerspectiveTransform(points, pts_std)
     dst_img = cv2.warpPerspective(img_crop, M, (img_crop_width, img_crop_height), borderMode=cv2.BORDER_REPLICATE)
     dst_img_height, dst_img_width = dst_img.shape[0:2]
-    if dst_img_height * 1.0 / dst_img_width >= 1.5:
-        dst_img = np.rot90(dst_img)
+    # if dst_img_height * 1.0 / dst_img_width >= 1.5:
+    #     dst_img = np.rot90(dst_img)
 
     return dst_img
 

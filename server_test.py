@@ -28,12 +28,12 @@ def post():
 		"username": "12345667890",
 		"lon": 131,
 		"lat": 32,
-		'imgname':'test5.jpg',
+		'imgname':'test3.jpg',
 		# 'img_path':'../../sdfs',
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './test5.jpg'
+	img_path = './test3.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -148,18 +148,22 @@ if __name__ == '__main__':
 
 	# for i in range(10):
 	# 	data = post()
+
+	# data2 = post_recog()
+
 	data1 = post()
-	data2 = post_recog()
-	# data2 = post()
-	# data3 = post()
-	# data4 = post()
+	data2 = post()
+	data3 = post()
+	data4 = post()
 	#
 	# get_shareimg()
 
 	for i in range(30):
 		time.sleep(2)
-		# res = status(data1['location'])
+		res = status(data1['location'])
+		res3 = status(data3['location'])
 		res2 = status(data2['location'])
+		res4 = status(data4['location'])
 
 		# if res['state'] == 'SUCCESS':
 		# 	break
