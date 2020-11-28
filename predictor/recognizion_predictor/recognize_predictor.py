@@ -16,7 +16,7 @@ from predictor.recognizion_predictor.nets import nets_factory
 import json
 from tensorflow.python.training import saver as tf_saver
 from Sqlite3.sqlite import db_add_item
-
+import hashlib
 
 slim = tf.contrib.slim
 
@@ -186,7 +186,7 @@ class Recognize_Predictor(Predictor):
 
 
 
-# @Predictor.register('recognize_batch')
+@Predictor.register('recognize_batch')
 class Recognize_Predictor_batch(Predictor):
 
 	def __init__(self):
@@ -302,7 +302,7 @@ class Recognize_Predictor_batch(Predictor):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 			else:
 				print('image is not exist!')
-				return {"text": [], 'probs': [], "imgid": -1}
+				return {"text": [], 'probs': [], "imgid": -1, 'key': ''}
 			text_list, prob_list = self.predict([img])
 			new_img_path = instance[0]
 			if len(text_list) != 0:
@@ -320,12 +320,18 @@ class Recognize_Predictor_batch(Predictor):
 			#
 
 			if len(text_list) == 0:
-				return {"text": [], 'probs': []}
+				return {"text": [], 'probs': [], "imgid": -1, 'key': ''}
 
-			return {"text": text_list[0], 'probs': prob_list[0], "imgid": id}
+			print('0')
+			img_base64 = cv2_to_base64(new_img_path)
+			print('1')
+			img_md5 = get_hash(img_base64)
+			print(img_md5)
+
+			return {"text": text_list[0], 'probs': prob_list[0], "imgid": id, 'key': img_md5}
 		except:
 			print('error in recognize 2.')
-			return {"text": [], 'probs': [], "imgid": -1}
+			return {"text": [], 'probs': [], "imgid": -1, 'key': ''}
 
 
 #{"text":[ ["A", 0.8], ["B", 0.2] ]}

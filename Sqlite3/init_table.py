@@ -2,7 +2,7 @@ import sqlite3
 import json
 import time
 
-DATABASE = 'Sqlite3/database.db'
+DATABASE = './database.db'
 
 conn = sqlite3.connect(DATABASE)
 c = conn.cursor()
@@ -13,7 +13,8 @@ c.execute('''CREATE TABLE ACCRWA
        LON        DECIMAL(10,7),
        LAT        DECIMAL(10,7),
        IMG_PATH        CHAR(50),
-       LAB_PATH        CHAR(50)
+       LAB_PATH        CHAR(50),
+       SCORE	INT
        );''')
 print("Execute success")
 conn.commit()

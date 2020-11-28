@@ -17,7 +17,7 @@ import numpy as np
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
 from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor_batch
-from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes, cv2_to_base64
+from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes, cv2_to_base64, get_hash, getwordimgs
 from celery import Celery
 from celery.app.task import Task
 from celery.app.control import Control
@@ -183,6 +183,27 @@ def score():
 def explainword(word):
     explain_dict = word_name_query_item(word)
     return jsonify(explain_dict)
+
+
+import hashlib
+#文字图示
+@app.route('/wordimgs/<word>/<id>/<key>', methods=['GET'])
+def wordimgs(word, id, key):
+    print('/wordimgs/', id, '/', id, '/', key)
+    data = db_query_by_id(id)
+    img_path = data.get("IMG_PATH", '')
+    img_base64 = cv2_to_base64(img_path)
+    img_md5 = get_hash(img_base64)
+    res_dict = {}
+    if key == img_md5:
+        res = getwordimgs(word)
+        res_dict['result'] = res
+    else:
+        res_dict['result'] = 'key invalid'
+
+    return jsonify(res_dict)
+
+
 
 
 

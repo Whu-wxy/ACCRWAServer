@@ -304,3 +304,33 @@ def base64_to_cv2(b64str):
     data = np.frombuffer(data, np.uint8)
     image = cv2.imdecode(data, cv2.IMREAD_COLOR)
     return image
+
+
+import hashlib
+
+def get_hash(input_str):
+    try:
+        md5 = hashlib.md5()
+        md5.update(input_str.encode('utf-8'))
+        return md5.hexdigest()
+    except Exception as e:
+        return ''
+
+
+def getwordimgs(word):
+    res_dict = {}
+    res_dict['草书'] = ''
+    res_dict['小篆'] = ''
+    res_dict['大篆'] = ''
+    res_dict['行书'] = ''
+    res_dict['楷书'] = ''
+    res_dict['隶书'] = ''
+
+    for type in res_dict.keys():
+        img_path = os.path.join(WORD_IMG_PATH, type, word+'.jpg')
+        if os.path.exists(img_path):
+            img = cv2.imdecode(np.fromfile(img_path,dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+            img_base64 = cvImg_to_base64(img_path, img)
+            res_dict[type] = img_base64
+    print(res_dict)
+    return res_dict

@@ -95,7 +95,7 @@ def demo():
 
 
 
-# @Predictor.register('ancient-chinese')
+@Predictor.register('ancient-chinese')
 class AncientChinesePredictor(Predictor):
 	def __init__(self):
 		self.detector = Detection_Predictor()
