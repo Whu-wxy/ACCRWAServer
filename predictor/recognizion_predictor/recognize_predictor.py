@@ -186,7 +186,7 @@ class Recognize_Predictor(Predictor):
 
 
 
-@Predictor.register('recognize_batch')
+# @Predictor.register('recognize_batch')
 class Recognize_Predictor_batch(Predictor):
 
 	def __init__(self):

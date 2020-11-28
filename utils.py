@@ -130,14 +130,15 @@ def sigmoid(x):
     return s
 
 from PIL import Image, ImageDraw, ImageFont
+import math
 
-def draw_bbox(img_path, result, color=(0, 0, 255), thickness=2, text_list = None, font_size = 20):
+def draw_bbox_old(img_path, result, color=(0, 0, 255), thickness=2, text_list = None, font_size = 20):
     if isinstance(img_path, str):
         img = cv2.imread(img_path)
         # img_path = cv2.cvtColor(img_path, cv2.COLOR_BGR2RGB)
     # img = img.copy()
-    scale = max(img.shape[0], img.shape[1]) / 240.0
-    font = ImageFont.truetype(FONT_PATH, int(font_size))
+    # font = ImageFont.truetype(FONT_PATH, int(font_size))
+
     for i, point in enumerate(result):
         point = point.astype(int)
         if len(point) == 4:
@@ -155,11 +156,55 @@ def draw_bbox(img_path, result, color=(0, 0, 255), thickness=2, text_list = None
         draw = ImageDraw.Draw(img)
         for i, point in enumerate(result):
             point = point.astype(int)
-            draw.text(tuple(point[0]), text_list[i], font=font, fill=(0, 0, 255))
+            font_size = math.ceil(min(pow(pow(point[1][0]-point[0][0],2)+pow(point[1][1]-point[0][1],2), 0.5),
+                            pow(pow(point[2][0]-point[1][0],2)+pow(point[2][1]-point[1][1],2), 0.5))/2)
+            font = ImageFont.truetype(FONT_PATH, int(font_size))
+            text_size = font.getsize(text_list[i])
+            x = (point[0][0] + point[2][0])//2 - text_size[0]/2
+            y = (point[0][1] + point[2][1])//2 - text_size[1]/2
+            point = [x, y]
+            draw.text(point, text_list[i], font=font, fill=(255, 255, 255))
         img = np.array(img)
     else:
         print('box count is not equal to text count in ', img_path)
     return img
+
+
+def draw_bbox(img_path, result, color=(0, 0, 255), thickness=2, text_list = None, font_size = 20):
+    if isinstance(img_path, str):
+        img = cv2.imread(img_path)
+        # img_path = cv2.cvtColor(img_path, cv2.COLOR_BGR2RGB)
+    # img = img.copy()
+    scale = max(img.shape[0], img.shape[1]) / 240.0
+    # font = ImageFont.truetype(FONT_PATH, int(font_size))
+
+    mask_map = np.zeros((img.shape), dtype=np.uint8)
+    for box in result:
+        cv2.fillPoly(mask_map, [box], color=(125,125,125))
+    img = cv2.addWeighted(img, 1, mask_map, -0.2, 0)
+
+
+    img = img.astype(np.uint8)
+
+    if len(result) == len(text_list):
+        img = Image.fromarray(img)
+        draw = ImageDraw.Draw(img)
+        for i, point in enumerate(result):
+            point = point.astype(int)
+            font_size = math.ceil(min(pow(pow(point[1][0] - point[0][0], 2) + pow(point[1][1] - point[0][1], 2), 0.5),
+                                      pow(pow(point[2][0] - point[1][0], 2) + pow(point[2][1] - point[1][1], 2),
+                                          0.5)) / 2)
+            font = ImageFont.truetype(FONT_PATH, int(font_size))
+            text_size = font.getsize(text_list[i])
+            x = (point[0][0] + point[2][0]) // 2 - text_size[0] / 2
+            y = (point[0][1] + point[2][1]) // 2 - text_size[1] / 2
+            point = [x, y]
+            draw.text(point, text_list[i], font=font, fill=(255, 255, 255))
+        img = np.array(img)
+    else:
+        print('box count is not equal to text count in ', img_path)
+    return img
+
 
 def save_boxes(save_path, boxes, text_list=None):
     lines = []
