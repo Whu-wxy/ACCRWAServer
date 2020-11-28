@@ -319,12 +319,12 @@ def get_hash(input_str):
 
 def getwordimgs(word):
     res_dict = {}
-    res_dict['草书'] = ''
-    res_dict['小篆'] = ''
-    res_dict['大篆'] = ''
-    res_dict['行书'] = ''
-    res_dict['楷书'] = ''
-    res_dict['隶书'] = ''
+    res_dict['caoshu'] = ''
+    res_dict['xiaozhuan'] = ''
+    res_dict['dazhuan'] = ''
+    res_dict['xingshu'] = ''
+    res_dict['kaishu'] = ''
+    res_dict['lishu'] = ''
 
     for type in res_dict.keys():
         img_path = os.path.join(WORD_IMG_PATH, type, word+'.jpg')

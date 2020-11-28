@@ -59,7 +59,7 @@ def post():
 def post_recog():
 	URL = 'http://127.0.0.1:8009/recognize'
 	# URL = 'http://119.3.124.157:8009/recognize'
-	# URL = 'https://www.72qier.icu:8009/recognize'
+	URL = 'https://www.72qier.icu:8009/recognize'
 	# URL = 'http://121.37.141.237:8009/recognize'
 
 	post_data = {
@@ -89,7 +89,7 @@ def post_recog():
 def status(url):
 	URL = 'http://127.0.0.1:8009' +url
 	# URL = 'http://119.3.124.157:8009' +url
-	# URL = 'https://www.72qier.icu:8009' +url
+	URL = 'https://www.72qier.icu:8009' +url
 	# URL = 'http://121.37.141.237:8009' +url
 
 
@@ -146,7 +146,7 @@ def get_word_imgs():
 	# print(str(word))
 	URL = 'http://127.0.0.1:8009/wordimgs/' + word + '/16' + '/478c9d2e0dd84280a2dd9586a4dad4c3'
 
-	# URL = 'https://www.72qier.icu:8009/explainword/' + word
+	URL = 'https://www.72qier.icu:8009/wordimgs/' + word + '/1275' + '/478c9d2e0dd84280a2dd9586a4dad4c3'
 
 	req = requests.get(url=URL)
 
@@ -155,6 +155,11 @@ def get_word_imgs():
 	data = json.loads(data)
 	print(data['result'].keys())
 	print(data)
+	img = base64_to_cv2(data['result']['草书'])
+	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
+	cv2.imshow('final_img', img)
+	cv2.waitKey()
+
 
 
 if __name__ == '__main__':
