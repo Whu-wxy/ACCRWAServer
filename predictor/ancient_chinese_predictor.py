@@ -139,13 +139,17 @@ class AncientChinesePredictor(Predictor):
 
 			if len(crop_img_list) == 0:
 				return [], []
-			texts, prob_list = self.recognizor.predict(crop_img_list)
-			for text in texts:
-				if len(text) != 0:
-					text = text[0]
-				else:
-					text = ""
-				text_list.append(text)
+
+			# print('count: ', len(crop_img_list))
+			for i in range(0, len(crop_img_list), RECOG_GROUP_NUM):
+				temp_crop_img_list = crop_img_list[i:i+RECOG_GROUP_NUM]
+				texts, prob_list = self.recognizor.predict(temp_crop_img_list)
+				for text in texts:
+					if len(text) != 0:
+						text = text[0]
+					else:
+						text = ""
+					text_list.append(text)
 			return new_box_list, text_list
 		except:
 			print('error in ancient_chinese 1.')

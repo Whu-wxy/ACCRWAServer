@@ -155,7 +155,7 @@ def get_word_imgs():
 	data = json.loads(data)
 	print(data['result'].keys())
 	print(data)
-	img = base64_to_cv2(data['result']['草书'])
+	img = base64_to_cv2(data['result']['caoshu'])
 	cv2.namedWindow("final_img", cv2.WINDOW_NORMAL)
 	cv2.imshow('final_img', img)
 	cv2.waitKey()
