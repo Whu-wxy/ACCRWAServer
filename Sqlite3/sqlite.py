@@ -51,17 +51,19 @@ def db_delete_item(id):
 
 def db_add_score(post_data):
 	try:
+		print(post_data)
 		conn = sqlite3.connect(DB_PATH)
 		print("Connect success")
 		cur = conn.cursor()
 		score = post_data.get("score", 0)
-		id = post_data.get("id")
+		id = post_data.get("imgid")
 		cur.execute("UPDATE ACCRWA set SCORE = ? where ID=?", (score, id), )
 		cur.close()
 		conn.commit()
 		conn.close()
 		print('db_add_score success.')
-	except:
+	except Exception as e:
+		print(e)
 		print('db_add_score fail.')
 
 

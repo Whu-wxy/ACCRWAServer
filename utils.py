@@ -181,14 +181,15 @@ def draw_bbox(img_path, result, color=(0, 0, 255), thickness=2, text_list = None
     mask_map = np.zeros((img.shape), dtype=np.uint8)
     for box in result:
         cv2.fillPoly(mask_map, [box], color=(125,125,125))
-    img = cv2.addWeighted(img, 1, mask_map, -0.2, 0)
 
+    img = cv2.addWeighted(img, 1, mask_map, -0.4, 0)
 
     img = img.astype(np.uint8)
 
     if len(result) == len(text_list):
         img = Image.fromarray(img)
         draw = ImageDraw.Draw(img)
+
         for i, point in enumerate(result):
             point = point.astype(int)
             font_size = math.ceil(min(pow(pow(point[1][0] - point[0][0], 2) + pow(point[1][1] - point[0][1], 2), 0.5),

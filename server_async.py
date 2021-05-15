@@ -2,6 +2,7 @@
 import gevent
 from gevent import monkey   #多线程
 monkey.patch_all()
+# 将标准库中大部分的阻塞式调用替换成非阻塞的方式，包括socket、ssl、threading、select、httplib等
 
 from typing import List, Callable, TypeVar
 import argparse
@@ -147,7 +148,7 @@ def sharedimg(img_id):
             return jsonify(response)
         if len(lab_path) != 0:
             boxes_list, text_list = load_boxes(lab_path)
-            drawed_img = draw_bbox(img_path, np.array(boxes_list), text_list=text_list, font_size=20)
+            drawed_img = draw_bbox(img_path, np.array(boxes_list, 'int32'), text_list=text_list, font_size=20)
             base64_img = cvImg_to_base64(img_path, drawed_img)
         else:
             base64_img = cv2_to_base64(img_path)
