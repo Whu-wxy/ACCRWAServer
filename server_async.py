@@ -76,6 +76,7 @@ control = Control(celery_app)
 
 predictor = Predictor.by_name(PREDICTOR)()
 
+# 检测并识别图像中所有古汉字
 @celery_app.task(bind=True)   #, ignore_result=True
 def celery_predict(self, json_data):
     global predictor
@@ -85,6 +86,7 @@ def celery_predict(self, json_data):
     result['result'] = prediction
     return result
 
+# 识别单个古汉字
 @celery_app.task(bind=True)   #, ignore_result=True
 def celery_predict_single_char(self, json_data):
     self.update_state(state='PROGRESS')
@@ -101,6 +103,7 @@ def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unu
     response.status_code = error.status_code
     return response
 
+# 检测并识别图像中所有古汉字，异步处理
 @app.route('/predict', methods=['POST'])
 def predict() -> Response:  # pylint: disable=unused-variable
     """make a prediction using the specified model and return the results"""
@@ -109,6 +112,7 @@ def predict() -> Response:  # pylint: disable=unused-variable
     print('task id: ', task.id)
     return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
 
+# 识别单个古汉字
 @app.route('/recognize', methods=['POST'])
 def predict_single_char() -> Response:  # pylint: disable=unused-variable
     """make a prediction using the specified model and return the results"""
@@ -117,7 +121,7 @@ def predict_single_char() -> Response:  # pylint: disable=unused-variable
     print('task id: ', task.id)
     return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
 
-
+# 用户轮询查看任务处理状态
 @app.route('/status/<task_id>', methods=['GET'])
 def taskstate(task_id):
     task = celery_predict.AsyncResult(task_id)
@@ -134,7 +138,7 @@ def taskstate(task_id):
         response = {'state': task.state}
     return jsonify(response)
 
-
+# 用户分享，其他用户通过id查看之前的结果
 @app.route('/shareimg/<img_id>', methods=['GET'])
 def sharedimg(img_id):
     base64_img = ""
@@ -161,7 +165,7 @@ def sharedimg(img_id):
     return jsonify(response)
 
 
-#使正在等待的任务停止
+# 使正在等待的任务停止
 @app.route('/revoke/<task_id>', methods=['GET'])
 def taskrevoke(task_id):
     task = celery_predict.AsyncResult(task_id)
@@ -171,7 +175,7 @@ def taskrevoke(task_id):
     return jsonify(response)
 
 
-#给识别结果打分
+# 识别结果打分
 @app.route('/score', methods=['POST'])
 def score():
     json_data = request.get_json()
@@ -179,7 +183,7 @@ def score():
     # {"imgid":23, "score":4.5}
     return jsonify({})
 
-#文字释义
+# 文字释义
 @app.route('/explainword/<word>', methods=['GET'])
 def explainword(word):
     explain_dict = word_name_query_item(word)
@@ -187,7 +191,7 @@ def explainword(word):
 
 
 import hashlib
-#文字图示
+# 文字图示，返回这个字的五种书体写法
 @app.route('/wordimgs/<word>/<id>/<key>', methods=['GET'])
 def wordimgs(word, id, key):
     print('/wordimgs/', id, '/', id, '/', key)
@@ -204,9 +208,25 @@ def wordimgs(word, id, key):
 
     return jsonify(res_dict)
 
+# 用户提建议
+@app.route('/suggest', methods=['POST'])
+def suggest():
+    def write_suggest(save_file, s):
+        with open(save_file, 'a') as f:
+            curtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+            f.write(curtime + " " + s)
 
-
-
+    try:
+        json_data = request.get_json()
+        suggest_content = json_data.get("suggest")
+        if len(suggest_content) <= 500:  # 用户最多填写多少个字
+            write_suggest(os.path.join(SAVE_ROOT_PATH, 'user_suggestion.txt'), suggest_content)
+            # {"suggest":"something"}
+            return jsonify({})
+    except:
+        print('suggest error.')
+    finally:
+        return jsonify({})
 
 if __name__ == "__main__":
     CORS(app)
