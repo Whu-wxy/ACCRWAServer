@@ -220,6 +220,8 @@ def suggest():
         json_data = request.get_json()
         suggest_content = json_data.get("suggest")
         if len(suggest_content) <= 500:  # 用户最多填写多少个字
+            if not os.path.exists(SAVE_ROOT_PATH):
+                os.makedirs(SAVE_ROOT_PATH)
             write_suggest(os.path.join(SAVE_ROOT_PATH, 'user_suggestion.txt'), suggest_content)
             # {"suggest":"something"}
             return jsonify({})
