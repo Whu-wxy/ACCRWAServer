@@ -214,7 +214,7 @@ def suggest():
     def write_suggest(save_file, s):
         with open(save_file, 'a') as f:
             curtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-            f.write(curtime + " " + s)
+            f.write(curtime + "\t" + s + '\n')
 
     try:
         json_data = request.get_json()
