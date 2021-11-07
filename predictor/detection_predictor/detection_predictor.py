@@ -153,9 +153,18 @@ class Detection_Predictor(Predictor):
 			return []
 
 	def get_draw_img(self, img_path, boxes_list):
-		boxes_list = np.array(boxes_list)
-		final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
-		return cvImg_to_base64(img_path, final_img)
+		try:
+			if len(boxes_list) != 0:
+				boxes_list = np.array(boxes_list)
+				final_img = draw_bbox(img_path, boxes_list, color=(0, 0, 255))
+			else:
+				if isinstance(img_path, str):
+					img = cv2.imread(img_path)
+				return cvImg_to_base64(img_path, img)
+		except:
+			if isinstance(img_path, str):
+				img = cv2.imread(img_path)
+			return cvImg_to_base64(img_path, img)
 
 	def _predict_instance(self, instance):
 		try:

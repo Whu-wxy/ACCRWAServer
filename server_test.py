@@ -18,9 +18,9 @@ def base64_to_cv2(b64str):
 
 
 def post():
-	URL = 'http://127.0.0.1:8009/predict'
+	# URL = 'http://127.0.0.1:8009/predict'
 	# URL = 'http://119.3.124.157:8009/predict'
-	URL = 'https://www.72qier.icu:8009/predict'
+	URL = 'https://www.whudcil.com.cn:8009/predict'
 	# URL = 'http://121.37.141.237:8009/predict'
 
 
@@ -28,12 +28,12 @@ def post():
 		"username": "12345667890",
 		"lon": 131,
 		"lat": 32,
-		'imgname':'test3.jpg',
+		'imgname':'1.jpg',
 		# 'img_path':'../../sdfs',
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './test3.jpg'
+	img_path = './1.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -44,11 +44,9 @@ def post():
 	headers = {"Content-type": "application/json"}
 	req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
 
-
 	# filename = "1.jpg"
 	# files = {'file': (filename, open("../1.jpg", 'rb'), 'image/jpg')}
 	#req = requests.post(URL, data=post_data, files=files)
-
 
 	data = req.content.decode('utf-8')
 	data = json.loads(data)
@@ -57,21 +55,51 @@ def post():
 	return data
 
 def post_recog():
-	URL = 'http://127.0.0.1:8009/recognize'
+	# URL = 'http://127.0.0.1:8009/recognize'
 	# URL = 'http://119.3.124.157:8009/recognize'
-	URL = 'https://www.72qier.icu:8009/recognize'
+	URL = 'https://www.whudcil.com.cn:8009/recognize'
 	# URL = 'http://121.37.141.237:8009/recognize'
 
 	post_data = {
 		"username": "12345667890",
 		"lon": 131,
 		"lat": 32,
-		'imgname':'0.jpg',
+		'imgname':'test.png',
 		# 'img_path':'../../sdfs',
 		# 'label_path':'../../sdfsdf'
 	}
 
-	img_path = './0.jpg'
+	img_path = './test.png'
+
+	# 发送HTTP请求
+	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
+
+	headers = {"Content-type": "application/json"}
+	req = requests.post(url=URL, headers=headers, data=json.dumps(post_data))
+
+	data = req.content.decode('utf-8')
+	data = json.loads(data)
+	print(data)
+
+	return data
+
+
+def post_det():
+	# URL = 'http://127.0.0.1:8009/recognize'
+	# URL = 'http://119.3.124.157:8009/recognize'
+	URL = 'https://www.whudcil.com.cn:8009/detect'
+	# URL = 'http://121.37.141.237:8009/recognize'
+
+	post_data = {
+		"username": "12345667890",
+		"lon": 131,
+		"lat": 32,
+		'imgname':'4.jpg',
+		# 'img_path':'../../sdfs',
+		# 'label_path':'../../sdfsdf'
+	}
+
+	img_path = './4.jpg'
 
 	# 发送HTTP请求
 	post_data['image'] = cv2_to_base64(cv2.imread(img_path))
@@ -87,9 +115,9 @@ def post_recog():
 
 
 def status(url):
-	URL = 'http://127.0.0.1:8009' +url
+	# URL = 'http://127.0.0.1:8009' +url
 	# URL = 'http://119.3.124.157:8009' +url
-	URL = 'https://www.72qier.icu:8009' +url
+	URL = 'https://www.whudcil.com.cn:8009/' +url
 	# URL = 'http://121.37.141.237:8009' +url
 
 
@@ -171,9 +199,18 @@ if __name__ == '__main__':
 	# for i in range(10):
 	# 	data = post()
 
-	get_word_imgs()
+	# get_word_imgs()
 
-	# data2 = post_recog()
+	# data = post_recog()
+
+	for i in range(20):
+		# data = post()
+		post_det()
+		data = post_recog()
+		# time.sleep(1)
+
+	# data2 = post_det()
+	# data3 = post_det()
 
 	# data1 = post()
 	# data2 = post()
@@ -184,7 +221,7 @@ if __name__ == '__main__':
 
 	for i in range(30):
 		time.sleep(2)
-	# 	res = status(data1['location'])
+		res = status(data['location'])
 	# 	res3 = status(data3['location'])
 	# 	res2 = status(data2['location'])
 	# 	res4 = status(data4['location'])

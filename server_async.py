@@ -17,6 +17,7 @@ import numpy as np
 
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
+from predictor.detection_predictor.detection_predictor import Detection_Predictor
 from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor_batch
 from predictor.recognizion_predictor.seal_recognize_predictor import Seal_Recognize_Predictor_batch
 from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes, cv2_to_base64, get_hash, getwordimgs
@@ -71,7 +72,7 @@ celery_app.conf.update(app.config)
 #任务过期时间，单位为s，默认为一
 celery_app.conf.CELERY_TASK_RESULT_EXPIRE = 1000
 #backen缓存结果的数目，默认5000
-celery_app.conf.CELERY_MAX_CACHED_RESULT = 200
+# celery_app.conf.CELERY_MAX_CACHED_RESULT = 200
 
 control = Control(celery_app)
 
@@ -105,6 +106,16 @@ def celery_seal_predict(self, json_data):
     self.update_state(state='PROGRESS')
     recog_predictor = Seal_Recognize_Predictor_batch()
     prediction = recog_predictor.predict_json(json_data)
+    result = {}
+    result['result'] = prediction
+    return result
+
+
+@celery_app.task(bind=True)   #, ignore_result=True
+def celery_only_detect_predict(self, json_data):
+    self.update_state(state='PROGRESS')
+    det_predictor = Detection_Predictor()
+    prediction = det_predictor.predict_json(json_data)
     result = {}
     result['result'] = prediction
     return result
@@ -158,6 +169,16 @@ def seal_predict_char() -> Response:  # pylint: disable=unused-variable
     task = celery_seal_predict.delay(json_data)
     print('task id: ', task.id)
     return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
+
+
+@app.route('/detect', methods=['POST'])
+def detect_only() -> Response:  # pylint: disable=unused-variable
+    """make a prediction using the specified model and return the results"""
+    json_data = request.get_json()
+    task = celery_only_detect_predict.delay(json_data)
+    print('task id: ', task.id)
+    return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
+
 
 # 用户分享，其他用户通过id查看之前的结果
 @app.route('/shareimg/<img_id>', methods=['GET'])
