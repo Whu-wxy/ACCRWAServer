@@ -18,6 +18,7 @@ import numpy as np
 from gevent.pywsgi import WSGIServer
 from predictor.Predictor import Predictor
 from predictor.recognizion_predictor.recognize_predictor import Recognize_Predictor_batch
+from predictor.recognizion_predictor.seal_recognize_predictor import Seal_Recognize_Predictor_batch
 from utils import check_for_gpu, allowed_file, draw_bbox, cvImg_to_base64, load_boxes, cv2_to_base64, get_hash, getwordimgs
 from celery import Celery
 from celery.app.task import Task
@@ -80,11 +81,13 @@ predictor = Predictor.by_name(PREDICTOR)()
 @celery_app.task(bind=True)   #, ignore_result=True
 def celery_predict(self, json_data):
     global predictor
+    #predictor= Recognize_Predictor_batch()
     self.update_state(state='PROGRESS')
     prediction = predictor.predict_json(json_data)
     result = {}
     result['result'] = prediction
     return result
+
 
 # 识别单个古汉字
 @celery_app.task(bind=True)   #, ignore_result=True
@@ -96,6 +99,15 @@ def celery_predict_single_char(self, json_data):
     result['result'] = prediction
     return result
 
+# 识别古印章
+@celery_app.task(bind=True)   #, ignore_result=True
+def celery_seal_predict(self, json_data):
+    self.update_state(state='PROGRESS')
+    recog_predictor = Seal_Recognize_Predictor_batch()
+    prediction = recog_predictor.predict_json(json_data)
+    result = {}
+    result['result'] = prediction
+    return result
 
 @app.errorhandler(ServerError)
 def handle_invalid_usage(error: ServerError) -> Response:  # pylint: disable=unused-variable
@@ -137,6 +149,15 @@ def taskstate(task_id):
     else:
         response = {'state': task.state}
     return jsonify(response)
+
+#检测并识别印章中所有古汉字，异步处理
+@app.route('/seal_recognize', methods=['POST'])
+def seal_predict_char() -> Response:  # pylint: disable=unused-variable
+    """make a prediction using the specified model and return the results"""
+    json_data = request.get_json()
+    task = celery_seal_predict.delay(json_data)
+    print('task id: ', task.id)
+    return jsonify({'state':task.state, 'location': url_for('taskstate', task_id=task.id)})
 
 # 用户分享，其他用户通过id查看之前的结果
 @app.route('/shareimg/<img_id>', methods=['GET'])

@@ -27,6 +27,14 @@ RECOG_IMG_SHAPE = 235  #224
 RECOG_GROUP_NUM = 100
 ###
 
+
+### 古印章识别模型参数
+SEAL_RECOGNITION_MODEL_NAME = 'resnet_v2_50'  # resnet_v2_50
+SEAL_RECOGNITION_MODEL_PATH = './data/recognize/resnet_50_seal_78to87/'  #./models/
+SEAL_DICT_SIZE = 2602
+SEAL_RECOG_IMG_SHAPE = 224
+
+
 ### 数据库
 DB_PATH = './data/database.db'
 WORD_DB_PATH = './data/word.db'
